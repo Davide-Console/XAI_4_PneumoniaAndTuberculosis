@@ -34,7 +34,7 @@ def extract_dataset(zipped_dataset, output_directory):
         :return: None
     """
 
-    # shutil.rmtree(output_directory, ignore_errors=True)
+    shutil.rmtree(output_directory, ignore_errors=True)
     os.makedirs(output_directory, exist_ok=True)
     with zipfile.ZipFile(zipped_dataset, 'r') as zip_ref:
         zip_ref.extractall(output_directory)
