@@ -1,6 +1,9 @@
 # Current project
 dataset
 train_set.zip
+float_model
+tb_logs
+train_log.csv
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
