@@ -9,9 +9,6 @@ PATH_NORMAL = 'dataset/normal'
 PATH_TUBERCULOSIS = 'dataset/tuberculosis'
 PATH_PNEUMONIA = 'dataset/pneumonia'
 
-def get_data_generator():
-    pass
-
 
 def prepare_folders():
     data = pd.read_csv('dataset/labels_train.csv', sep=',')
@@ -36,6 +33,8 @@ def extract_dataset(zipped_dataset, output_directory):
         :param data_aug: Whether to augment the dataset or not.
         :return: None
     """
+
+    # shutil.rmtree(output_directory, ignore_errors=True)
     os.makedirs(output_directory, exist_ok=True)
     with zipfile.ZipFile(zipped_dataset, 'r') as zip_ref:
         zip_ref.extractall(output_directory)
@@ -48,5 +47,5 @@ def extract_dataset(zipped_dataset, output_directory):
 
 
 if __name__ == '__main__':
-    # extract_dataset('train_set.zip', 'dataset/')
-    prepare_folders()
+    extract_dataset('train_set.zip', 'dataset/')
+    # prepare_folders()
