@@ -95,7 +95,7 @@ def cross_validation_splits(data: pd.DataFrame, fold=5, shuffle=True, random_sta
         y_train_folds.append(y_train)
 
         for idx_test in test_index:
-            if len(data.iloc[idx_test, 1]) > 1:
+            if len(data.iloc[idx_test, 1]) > 1 and type(data.iloc[idx_test, 1]) == list:
                 for element in data.iloc[idx_test, 1]:
                     X_test.append(element)
                     y_test.append(data.iloc[idx_test, 2])
@@ -121,6 +121,8 @@ if __name__ == '__main__':
     x_test_fold0 = X_test_folds[0]
     y_test_fold0 = y_test_folds[0]
 
-    dg0 = DataGen(2, (256, 256), x_train_fold0, y_train_fold0)
+    dg0 = DataGen(2, (256, 256), x_test_fold0, y_test_fold0)
 
-    x_batch_2, y_batch_2 = dg0.__getitem__(2)
+    for i in range(dg0.__len__()):
+        print(i)
+        x_batch_2, y_batch_2 = dg0.__getitem__(i)
