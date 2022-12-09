@@ -123,6 +123,8 @@ if __name__ == '__main__':
 
     dg0 = DataGen(2, (256, 256), x_test_fold0, y_test_fold0)
 
+    x_batch_2, y_batch_2 = dg0.__getitem__(2)
+
     for i in range(dg0.__len__()):
-        print(i)
-        x_batch_2, y_batch_2 = dg0.__getitem__(i)
+        x, y = dg0.__getitem__(i)
+        print(y)

@@ -314,10 +314,10 @@ def variable_training(model, train_dataset, val_dataset, epochs: int, epoch_flag
         y_true = np.concatenate(Y)
         y_pred = model.predict(val_dataset)
 
-        scores = classification_report(y_true, y_pred, digits=4,
+        scores = classification_report(np.argmax(y_true, axis=-1), np.argmax(y_pred, axis=-1), digits=4,
                                        output_dict=True)
 
-        print(classification_report(y_true, y_pred, digits=4,
+        print(classification_report(np.argmax(y_true, axis=-1), np.argmax(y_pred, axis=-1), digits=4,
                                     output_dict=False))
         if adjust_weights:
             class_weights = update_weights(scores, classes, power=4)
