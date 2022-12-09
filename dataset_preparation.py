@@ -1,42 +1,30 @@
 import shutil
 import zipfile
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-from skimage import io
-import numpy as np
+import tensorflow as tf
+import pandas as pd
 import os
-from PIL import Image
+import cv2
+
+PATH_NORMAL = 'dataset/normal'
+PATH_TUBERCULOSIS = 'dataset/tuberculosis'
+PATH_PNEUMONIA = 'dataset/pneumonia'
+
+def get_data_generator():
+    pass
 
 
-def dataset_2_np(dataset_dir='dataset'):
-    """
-        This function takes the directory of the dataset as input and returns the X and Y numpy arrays.
-        The X array contains the images and the Y array contains the labels.
-        The images are resized to 96x96.
-        The labels are one-hot encoded.
-    """
-    IMG_SIZE = 96
+def prepare_folders():
+    data = pd.read_csv('dataset/labels_train.csv', sep=',')
 
-    dataset = ImageDataGenerator()
+    PATHS = [PATH_PNEUMONIA, PATH_TUBERCULOSIS, PATH_NORMAL]
+    labels = ['P', 'T', 'N']
 
-    dataset = dataset.flow_from_directory(directory=dataset_dir,
-                                          target_size=(IMG_SIZE, IMG_SIZE),
-                                          color_mode='rgb',
-                                          classes=None,  # can be set to labels
-                                          class_mode='categorical',
-                                          batch_size=1,
-                                          seed=1)
+    for path in PATHS:
+        shutil.rmtree(path, ignore_errors=True)
+        os.makedirs(path)
 
-    X = []
-    Y = []
-    for i in range(dataset.__len__()):
-        x, y = dataset.__getitem__(i)
-        X.append(x)
-        Y.append(y)
-
-    X = np.concatenate(X)
-    Y = np.concatenate(Y)
-
-    return X, Y
+    for _, row in data.iterrows():
+        shutil.move('dataset/' + row['file'], PATHS[labels.index(row['label'])])
 
 
 def extract_dataset(zipped_dataset, output_directory):
@@ -60,4 +48,5 @@ def extract_dataset(zipped_dataset, output_directory):
 
 
 if __name__ == '__main__':
-    extract_dataset('train_set.zip', 'dataset/')
+    # extract_dataset('train_set.zip', 'dataset/')
+    prepare_folders()
