@@ -27,17 +27,14 @@ class DataGen(keras.utils.Sequence):
         batch_input_img_paths = self.input_img_paths[i: i + self.batch_size]
         batch_target = self.target[i: i + self.batch_size]
         x = np.zeros((self.batch_size,) + self.img_size + (1,))
-        y = np.zeros((self.batch_size,) + (3,))
+        y = batch_target
 
         for j, path in enumerate(batch_input_img_paths):
             img = cv2.imread(self.directory + path, 0)  # read as grayscale
             img = cv2.resize(img, self.img_size, interpolation=cv2.INTER_CUBIC)
             x[j] = np.expand_dims(img, 2)
 
-        for i in range(len(y)):
-            y[i][batch_target[i] - 1] = 1
-
-        return x, y
+        return x, keras.utils.to_categorical(y, num_classes=3)
 
     def __len__(self):
         return len(self.target) // self.batch_size

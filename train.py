@@ -294,7 +294,7 @@ def variable_training(model, train_dataset, val_dataset, epochs: int, epoch_flag
 
         print("compiling model")
         model.compile(optimizer=Adam(learning_rate=learning_rate_fn),
-                      loss=keras.losses.SparseCategoricalCrossentropy(from_logits=False),
+                      loss=keras.losses.categorical_crossentropy,
                       metrics='accuracy')
 
         print("fitting model")
