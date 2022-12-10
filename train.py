@@ -99,7 +99,7 @@ def get_next_flag(epoch, epoch_flags, epochs):
     return next_flag
 
 
-def freeze_unfreeze_feature_extractor(model, freeze, name="efficientnetb0"):
+def freeze_unfreeze_feature_extractor(model, freeze, name="efficientnetb3"):
     """
         Freeze or unfreeze the feature extractor of a model.
         Parameters
