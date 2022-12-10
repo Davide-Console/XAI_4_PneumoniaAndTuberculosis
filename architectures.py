@@ -95,7 +95,7 @@ def get_EfficientNetB3(weights=None, input_shape=(256, 256, 1), classes=8, regul
     model : keras.Model
         A compiled EfficientNetB3 model.
     """
-    model = EfficientNetB0(include_top=False,
+    model = EfficientNetB3(include_top=False,
                            weights=weights,
                            input_shape=input_shape,
                            classes=classes)

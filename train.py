@@ -358,7 +358,7 @@ if __name__ == '__main__':
     for i in range(classes):
         cl_w.update({i: 1})
 
-    frozen_FE = [True] + [False] * 8
-    variable_training(net, dg_train0, dg_val0, epochs=27, epoch_flags=3,
+    frozen_FE = [False] + [False] * 8
+    variable_training(net, dg_train0, dg_val0, epochs=180, epoch_flags=20,
                       learn_rates=learn_rates, loss_functions=loss, class_weights=cl_w, adjust_weights=True,
                       classes=classes, frozen_FE=frozen_FE)

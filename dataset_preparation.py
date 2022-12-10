@@ -28,9 +28,8 @@ def extract_dataset(zipped_dataset, output_directory):
     """
         Extracts the dataset from the zipped file and moves the folders to the root directory.
         If data_aug is True, the function will augment the dataset to have 500 images per class.
-        :param zipped_dataset: The path to the zipped dataset.
+        :param zipped_dataset The path to the zipped dataset.
         :param output_directory: The path to the output directory.
-        :param data_aug: Whether to augment the dataset or not.
         :return: None
     """
 
