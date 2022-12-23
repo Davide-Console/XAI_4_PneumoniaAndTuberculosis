@@ -333,7 +333,7 @@ if __name__ == '__main__':
 
     seed = 1
     classes = 3
-    batch_size = 2
+    batch_size = 16
 
     patients = make_list_of_patients()
     X_train_folds, y_train_folds, X_test_folds, y_test_folds = cross_validation_splits(data=patients)
