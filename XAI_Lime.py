@@ -40,11 +40,12 @@ explainer = lime_image.LimeImageExplainer()
 
 
 def predict2(img2):
-    print(img2.shape)
-    return model.predict(img2[:, :, :, 0])
+    # print(img2.shape)
+    return model.predict(img2[:, :, :, 0]*255)  # the explain_instance function calls skimage.color.rgb2gray. So I
+    # need to take only yhe first channel to make the prediction
 
 
-exp = explainer.explain_instance(img[0, :, :, 0], predict2, top_labels=1, hide_color=0, num_samples=1000)
+exp = explainer.explain_instance(img[0, :, :, 0]/255, predict2, top_labels=1, hide_color=0, num_samples=1000)
 print(exp.top_labels)
 plt.imshow(exp.segments)
 plt.axis('off')
