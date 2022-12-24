@@ -1,10 +1,10 @@
 # Current project
-dataset
+dataset/
+tb_logs/
+float_model/
+*.pkl
 train_set.zip
-float_model
-tb_logs
-train_log.csv
-
+*.png
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
