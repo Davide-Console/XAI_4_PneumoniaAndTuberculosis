@@ -3,7 +3,6 @@ import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 import execution_settings
-
 import matplotlib.pyplot as plt
 import numpy as np
 from lime import lime_image
@@ -62,7 +61,7 @@ def get_images(indexes):
 
 
 if __name__ == '__main__':
-    image_indexes = [0, 31, 99]
+    image_indexes = [31, 39, 99]  # N, P, T
     model_path = 'explainedModels/0.9116-0.9416-f_model.h5'
 
     pred2explain = 0  # index of the label to be analyzed. 0 means the label with higher probability
@@ -73,6 +72,9 @@ if __name__ == '__main__':
 
     images, labels = get_images(image_indexes)
     model = tf.keras.models.load_model(model_path)
+
+    fig, axarr = plt.subplots(len(image_indexes), 3)
+    row = 0
 
     explainer = lime_image.LimeImageExplainer()
     for image, label in zip(images, labels):
@@ -89,18 +91,18 @@ if __name__ == '__main__':
         print("Explainer top labels:", end=' ')
         print(exp.top_labels)
 
-        plt.imshow(exp.segments)
-        plt.axis('off')
-        plt.show()
+        axarr[row, 0].imshow(exp.segments)
+        axarr[row, 0].axis('off')
 
         heatmap = explanation_heatmap(exp, exp.top_labels[pred2explain])
-        plt.imshow(heatmap, cmap='RdBu', vmin=-heatmap.max(), vmax=heatmap.max())
-        plt.colorbar()
-        plt.show()
+        tmp = axarr[row, 1].imshow(heatmap, cmap='RdBu', vmin=-heatmap.max(), vmax=heatmap.max())
+        fig.colorbar(tmp, ax=axarr[row, 1])
 
         min_weight = min_importance * np.max(heatmap)
 
         masked_image = generate_prediction_sample(exp, exp.top_labels[pred2explain], show_positive=True, hide_background=False)
-        plt.imshow(masked_image)
-        plt.axis('off')
-        plt.show()
+        axarr[row, 2].imshow(masked_image)
+        axarr[row, 2].axis('off')
+        row += 1
+
+    plt.show()
