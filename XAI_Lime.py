@@ -12,6 +12,8 @@ from dataset_utils import make_list_of_patients, cross_validation_splits, DataGe
 
 execution_settings.set_gpu()
 
+LABELS = ["NORMAL", "PNEUMONIA", "TUBERCULOSIS"]
+
 
 def predict4lime(img2):
     # print(img2.shape)
@@ -19,12 +21,12 @@ def predict4lime(img2):
     # need to take only yhe first channel to make the prediction
 
 
-def generate_prediction_sample(lime_exp, exp_class, weight=0.0, show_positive=True, hide_background=True):
+def generate_prediction_sample(lime_exp, exp_class, weight=0.0, show_positive_only=True, hide_background=True):
     """
     Method to display and highlight super-pixels used by the black-box model to make predictions
     """
     img, mask = lime_exp.get_image_and_mask(exp_class,
-                                            positive_only=show_positive,
+                                            positive_only=show_positive_only,
                                             num_features=6,
                                             hide_rest=hide_background,
                                             min_weight=weight
@@ -65,7 +67,7 @@ if __name__ == '__main__':
     model_path = 'explainedModels/0.9116-0.9416-f_model.h5'
 
     pred2explain = 0  # index of the label to be analyzed. 0 means the label with higher probability
-    min_importance = 0.5  # minimum POSITIVE importance, in percentage, of superpixels to be shown
+    min_importance = 0.25  # minimum POSITIVE importance, in percentage, of superpixels to be shown
 
     assert 3 > pred2explain > -1
     assert 1 > min_importance > 0
@@ -73,13 +75,20 @@ if __name__ == '__main__':
     images, labels = get_images(image_indexes)
     model = tf.keras.models.load_model(model_path)
 
-    fig, axarr = plt.subplots(len(image_indexes), 3)
+    fig, axs = plt.subplots(nrows=len(image_indexes), ncols=1, constrained_layout=True)
+    fig.suptitle('LIME Explainer')
+    for ax in axs:
+        ax.remove()
+
+    gridspec = axs[0].get_subplotspec().get_gridspec()
+    subfigs = [fig.add_subfigure(gs) for gs in gridspec]
+
     row = 0
 
     explainer = lime_image.LimeImageExplainer()
-    for image, label in zip(images, labels):
+    for image, label, subfig in zip(images, labels, subfigs):
         exp = explainer.explain_instance(image[0, :, :, 0] / 255, predict4lime, top_labels=3, hide_color=0,
-                                         num_samples=1000)
+                                         num_samples=1000, random_seed=333)
 
         label = label[0]
         pred = model.predict(image)
@@ -87,22 +96,27 @@ if __name__ == '__main__':
         print("True class:", end=' ')
         print(label)
         print("Pred probabilities:", end=' ')
-        print(pred[0])
+        pred = [round(i, 3) for i in pred[0]]
+        print(pred)
         print("Explainer top labels:", end=' ')
         print(exp.top_labels)
 
-        axarr[row, 0].imshow(exp.segments)
-        axarr[row, 0].axis('off')
+        title = "True: " + LABELS[np.argmax(label)] + " - Predicted: " + LABELS[np.argmax(pred)]
+        subfig.suptitle(title)
+        axs = subfig.subplots(nrows=1, ncols=3)
+        axs[0].imshow(exp.segments)
+        axs[0].axis('off')
 
         heatmap = explanation_heatmap(exp, exp.top_labels[pred2explain])
-        tmp = axarr[row, 1].imshow(heatmap, cmap='RdBu', vmin=-heatmap.max(), vmax=heatmap.max())
-        fig.colorbar(tmp, ax=axarr[row, 1])
+        tmp = axs[1].imshow(heatmap, cmap='RdBu', vmin=-heatmap.max(), vmax=heatmap.max())
+        subfig.colorbar(tmp, ax=axs[1])
 
         min_weight = min_importance * np.max(heatmap)
 
-        masked_image = generate_prediction_sample(exp, exp.top_labels[pred2explain], show_positive=True, hide_background=False)
-        axarr[row, 2].imshow(masked_image)
-        axarr[row, 2].axis('off')
+        masked_image = generate_prediction_sample(exp, exp.top_labels[pred2explain], show_positive_only=False,
+                                                  hide_background=False, weight=min_weight)
+        axs[2].imshow(masked_image)
+        axs[2].axis('off')
         row += 1
 
     plt.show()
