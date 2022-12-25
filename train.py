@@ -358,6 +358,8 @@ if __name__ == '__main__':
     for i in range(classes):
         cl_w.update({i: 1})
 
+    cl_w.update({TUBERCULOSIS: 3})
+
     frozen_FE = False
     variable_training(net, dg_train0, dg_val0, epochs=1900, epoch_flags=100,
                       learn_rates=learn_rates, loss_functions=loss, class_weights=cl_w, adjust_weights=True,
