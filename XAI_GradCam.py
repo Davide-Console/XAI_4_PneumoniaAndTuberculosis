@@ -110,7 +110,7 @@ def GradCam(model, img_array, label,  layer_name, eps=1e-8):
     return heatmap, predictions
 
 if __name__ == '__main__':
-    model = tf.keras.models.load_model('float_model/0.9116-0.9416-f_model.h5')
+    model = tf.keras.models.load_model('explainedModels/0.9116-0.9416-f_model.h5')
     model.compile(optimizer='Adam',
                   loss=keras.losses.categorical_crossentropy,
                   metrics='accuracy')
