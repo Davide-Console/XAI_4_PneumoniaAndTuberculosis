@@ -10,6 +10,8 @@ train_set.zip
 __pycache__/
 *.py[cod]
 *$py.class
+GPU_MEMORY.py
+*.h5
 
 # C extensions
 *.so

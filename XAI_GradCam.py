@@ -1,4 +1,10 @@
 # @title Implementation
+import os
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+
+import execution_settings
+
 import cv2
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
@@ -8,6 +14,8 @@ import numpy as np
 from tensorflow.python.keras.optimizer_v1 import Adam
 
 from dataset_utils import *
+
+execution_settings.set_gpu()
 
 
 def display_gradcam(img, heatmap):
