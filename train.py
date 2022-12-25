@@ -349,16 +349,16 @@ if __name__ == '__main__':
 
     net = get_EfficientNetB3(classes=classes, weights=None, l1=0.00001, l2=0.00001)
 
-    learn_rates = [0.001, 0.0006, 3.6784e-04, 2.1350e-04, 1.2595e-04, 8.0690e-05, 6.0140e-05, 5.2440e-05,
-                   5.0330e-05, 5.0011e-05]
+    learn_rates = [0.001, 0.0006, 3.6784e-04, 2.1350e-04, 1.2595e-04, 8.0690e-05, 6.0140e-05, 5.0330e-05,
+                   5.0330e-06, 1.0011e-07] * 2
 
-    loss = sparse_categorical_crossentropy
+    loss = categorical_crossentropy
 
     cl_w = {}
     for i in range(classes):
         cl_w.update({i: 1})
 
-    frozen_FE = [False] + [False] * 8
-    variable_training(net, dg_train0, dg_val0, epochs=180, epoch_flags=20,
+    frozen_FE = False
+    variable_training(net, dg_train0, dg_val0, epochs=1900, epoch_flags=100,
                       learn_rates=learn_rates, loss_functions=loss, class_weights=cl_w, adjust_weights=True,
                       classes=classes, frozen_FE=frozen_FE)
