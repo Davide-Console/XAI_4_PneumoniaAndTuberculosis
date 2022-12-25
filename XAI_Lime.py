@@ -8,7 +8,7 @@ import numpy as np
 from lime import lime_image
 import tensorflow as tf
 from skimage.segmentation import mark_boundaries
-from dataset_utils import make_list_of_patients, cross_validation_splits, DataGen
+from dataset_utils import make_list_of_patients, cross_validation_splits, DataGen, get_images
 
 execution_settings.set_gpu()
 
@@ -40,26 +40,6 @@ def explanation_heatmap(lime_exp, exp_class):
     """
     dict_heatmap = dict(lime_exp.local_exp[exp_class])
     return np.vectorize(dict_heatmap.get)(lime_exp.segments)
-
-
-def get_images(indexes):
-    patients = make_list_of_patients()
-    X_train_folds, y_train_folds, X_test_folds, y_test_folds = cross_validation_splits(data=patients)
-
-    x_test_fold0 = X_test_folds[0]
-    y_test_fold0 = y_test_folds[0]
-
-    batch_size = 1
-    dg_val0 = DataGen(batch_size, (256, 256), x_test_fold0, y_test_fold0)
-
-    imgs = []
-    lbls = []
-    for index in indexes:
-        img, lbl = dg_val0.__getitem__(index)
-        imgs.append(img)
-        lbls.append(lbl)
-
-    return imgs, lbls
 
 
 if __name__ == '__main__':
