@@ -320,7 +320,7 @@ def variable_training(model, train_dataset, val_dataset, epochs: int, epoch_flag
         print(classification_report(np.argmax(y_true, axis=-1), np.argmax(y_pred, axis=-1), digits=4,
                                     output_dict=False))
         if adjust_weights:
-            class_weights = update_weights(scores, classes, power=4)
+            class_weights = update_weights(scores, classes, power=9)
             print("Weights updated to: ")
             print(class_weights)
 
