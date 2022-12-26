@@ -119,7 +119,7 @@ def freeze_unfreeze_feature_extractor(model, freeze, name="efficientnetb3"):
     return model
 
 
-def update_weights(scores, classes, power):
+def update_weights(scores, classes, power=1, offset=1):
     """
         This function takes the scores of each class and returns the weights for each class.
         The weights are calculated based on the f1-score of each class.
@@ -128,6 +128,7 @@ def update_weights(scores, classes, power):
         The weights are calculated using the following formula:
             weight = 1 + (1 - f1**power / (np.max(f1s)**power + np.finfo(float).eps))
         The power is a hyperparameter that can be tuned.
+        The offset set the range of values. The weights can go from 1 to offset+1
         The default value is 2.
         The weights are returned as a dictionary.
         The keys are the class labels.
@@ -139,7 +140,7 @@ def update_weights(scores, classes, power):
 
     weights = []
     for f1 in f1s:
-        weight = 1 + (1 - f1 ** power / (np.max(f1s) ** power + np.finfo(float).eps))
+        weight = 1 + (offset - offset * (f1 ** power / (np.max(f1s) ** power + np.finfo(float).eps)))
         weights.append(weight)
 
     dict_weights = {}
@@ -320,7 +321,7 @@ def variable_training(model, train_dataset, val_dataset, epochs: int, epoch_flag
         print(classification_report(np.argmax(y_true, axis=-1), np.argmax(y_pred, axis=-1), digits=4,
                                     output_dict=False))
         if adjust_weights:
-            class_weights = update_weights(scores, classes, power=9)
+            class_weights = update_weights(scores, classes, power=5, offset=3)
             print("Weights updated to: ")
             print(class_weights)
 

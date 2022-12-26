@@ -12,6 +12,7 @@ __pycache__/
 *$py.class
 GPU_MEMORY.py
 *.h5
+tests.py
 
 # C extensions
 *.so
