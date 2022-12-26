@@ -67,6 +67,7 @@ def make_list_of_patients():
 
 
 def get_images(indexes):
+    # TODO: take images from test set
     patients = make_list_of_patients()
     X_train_folds, y_train_folds, X_test_folds, y_test_folds = stratified_cross_validation_splits(data=patients)
 
