@@ -6,6 +6,7 @@ float_model/
 train_set.zip
 *.png
 *.csv
+*.csv#
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
