@@ -1,15 +1,19 @@
-import numpy as np
+import os
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+
 from sklearn.metrics import classification_report
 from tensorflow.keras import backend as K
 from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint, CSVLogger
-from tensorflow.keras.losses import categorical_crossentropy, sparse_categorical_crossentropy
+from tensorflow.keras.losses import categorical_crossentropy
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.optimizers.schedules import PolynomialDecay
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from dataset_utils import *
 
 from architectures import *
 import execution_settings
+
+execution_settings.set_gpu()
 
 
 def compute_weights(labels):
@@ -45,11 +49,12 @@ def compute_weights(labels):
 
 def get_f1(y_true, y_pred):
     """
-        Computes the F1 score, the harmonic mean of precision and recall.
-        This is a better metric than accuracy, especially if for an uneven class distribution.
-        Source: https://stackoverflow.com/questions/43547402/how-to-calculate-f1-macro-in-keras
-        Source: https://www.kaggle.com/rejpalcz/best-loss-function-for-f1-score-metric
-        Source: https://datascience.stackexchange.com/questions/45165/how-to-get-accuracy-f1-precision-and-recall-for-a-keras-model
+    Computes the F1 score, the harmonic mean of precision and recall. This is a better metric than accuracy,
+    especially if for an uneven class distribution. Sources:
+    https://stackoverflow.com/questions/43547402/how-to-calculate-f1-macro-in-keras Source:
+    https://www.kaggle.com/rejpalcz/best-loss-function-for-f1-score-metric Source:
+    https://datascience.stackexchange.com/questions/45165/how-to-get-accuracy-f1-precision-and-recall-for-a-keras-model
+
         Parameters
         ----------
         y_true : TensorFlow/Theano tensor
@@ -119,7 +124,7 @@ def freeze_unfreeze_feature_extractor(model, freeze, name="efficientnetb3"):
     return model
 
 
-def update_weights(scores, classes, power=1, offset=1):
+def update_weights(scores, labels, power=1, offset=1):
     """
         This function takes the scores of each class and returns the weights for each class.
         The weights are calculated based on the f1-score of each class.
@@ -135,7 +140,7 @@ def update_weights(scores, classes, power=1, offset=1):
         The values are the weights.
     """
     f1s = []
-    for i in range(classes):
+    for i in range(labels):
         f1s.append(scores[str(i)]['f1-score'])
 
     weights = []
@@ -144,7 +149,7 @@ def update_weights(scores, classes, power=1, offset=1):
         weights.append(weight)
 
     dict_weights = {}
-    for i in range(classes):
+    for i in range(labels):
         dict_weights.update({i: weights[i]})
 
     return dict_weights
@@ -337,31 +342,34 @@ if __name__ == '__main__':
     batch_size = 16
 
     patients = make_list_of_patients()
-    X_train_folds, y_train_folds, X_test_folds, y_test_folds = cross_validation_splits(data=patients)
+
+    patients_train, patients_test = test_split(data=patients)
+    X_train_folds, y_train_folds, X_val_folds, y_val_folds = stratified_cross_validation_splits(data=patients_train)
+    X_test, y_test = dataframe2lists(patients_test)
 
     x_train_fold0 = X_train_folds[0]
     y_train_fold0 = y_train_folds[0]
 
-    x_test_fold0 = X_test_folds[0]
-    y_test_fold0 = y_test_folds[0]
+    x_val_fold0 = X_val_folds[0]
+    y_val_fold0 = y_val_folds[0]
 
     dg_train0 = DataGen(batch_size, (256, 256), x_train_fold0, y_train_fold0)
-    dg_val0 = DataGen(batch_size, (256, 256), x_test_fold0, y_test_fold0)
+    dg_val0 = DataGen(batch_size, (256, 256), x_val_fold0, y_val_fold0)
 
     net = get_EfficientNetB3(classes=classes, weights=None, l1=0.00001, l2=0.00001)
 
     learn_rates = [0.001, 0.0006, 3.6784e-04, 2.1350e-04, 1.2595e-04, 8.0690e-05, 6.0140e-05, 5.0330e-05,
                    5.0330e-06, 1.0011e-07]
 
-    loss = categorical_crossentropy
+    loss_function = categorical_crossentropy
 
     cl_w = {}
-    for i in range(classes):
-        cl_w.update({i: 1})
+    for c in range(classes):
+        cl_w.update({c: 1})
 
     cl_w.update({TUBERCULOSIS: 3})
 
-    frozen_FE = False
+    freezeFE = False
     variable_training(net, dg_train0, dg_val0, epochs=900, epoch_flags=100,
-                      learn_rates=learn_rates, loss_functions=loss, class_weights=cl_w, adjust_weights=True,
-                      classes=classes, frozen_FE=frozen_FE)
+                      learn_rates=learn_rates, loss_functions=loss_function, class_weights=cl_w, adjust_weights=True,
+                      classes=classes, frozen_FE=freezeFE)

@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from tensorflow import keras
-from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import StratifiedKFold, train_test_split
 import cv2
 
 PATH_NORMAL = 'dataset/normal'
@@ -68,7 +68,7 @@ def make_list_of_patients():
 
 def get_images(indexes):
     patients = make_list_of_patients()
-    X_train_folds, y_train_folds, X_test_folds, y_test_folds = cross_validation_splits(data=patients)
+    X_train_folds, y_train_folds, X_test_folds, y_test_folds = stratified_cross_validation_splits(data=patients)
 
     x_test_fold0 = X_test_folds[0]
     y_test_fold0 = y_test_folds[0]
@@ -86,7 +86,33 @@ def get_images(indexes):
     return imgs, lbls
 
 
-def cross_validation_splits(data: pd.DataFrame, fold=5, shuffle=True, random_state=8432):
+def test_split(data: pd.DataFrame, test_size=0.15, shuffle=True, random_state=8432):
+    patients_train, patients_test = train_test_split(data,
+                                                     stratify=data.iloc[:, -1].values,
+                                                     test_size=test_size,
+                                                     shuffle=shuffle,
+                                                     random_state=random_state)
+
+    return patients_train, patients_test
+
+
+def dataframe2lists(data: pd.DataFrame):
+    X = []
+    y = []
+
+    for i in range(len(data)):
+        if len(data.iloc[i, 1]) > 1 and type(data.iloc[i, 1]) == list:
+            for element in data.iloc[i, 1]:
+                X.append(element)
+                y.append(data.iloc[i, 2])
+        else:
+            X.append(data.iloc[i, 1])
+            y.append(data.iloc[i, 2])
+
+    return X, y
+
+
+def stratified_cross_validation_splits(data: pd.DataFrame, fold=5, shuffle=True, random_state=8432):
     X = data.iloc[:, :-1].values
     y = data.iloc[:, -1].values
 

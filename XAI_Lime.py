@@ -8,7 +8,7 @@ import numpy as np
 from lime import lime_image
 import tensorflow as tf
 from skimage.segmentation import mark_boundaries
-from dataset_utils import make_list_of_patients, cross_validation_splits, DataGen, get_images
+from dataset_utils import make_list_of_patients, stratified_cross_validation_splits, DataGen, get_images
 
 execution_settings.set_gpu()
 
