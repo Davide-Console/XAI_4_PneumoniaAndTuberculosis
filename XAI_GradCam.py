@@ -18,7 +18,7 @@ from dataset_utils import *
 execution_settings.set_gpu()
 
 
-def display_gradcam(img, heatmap):
+def display_gradcam(img, heatmap, emphasize=False, thresh=None):
     def sigmoid(x, a, b, c):
         return c / (1 + np.exp(-a * (x - b)))
 
@@ -30,6 +30,10 @@ def display_gradcam(img, heatmap):
 
     # Use RGB values of the colormap
     jet_colors = jet(np.arange(256))[:, :3]
+
+    if emphasize:
+        heatmap = sigmoid(heatmap, 50, thresh, 1)
+
     jet_heatmap = jet_colors[heatmap]
 
     # Create an image with RGB colorized heatmap
