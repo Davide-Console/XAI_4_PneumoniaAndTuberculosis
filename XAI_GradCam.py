@@ -74,7 +74,8 @@ def GradCam(model, img_array, label, layer_name, eps=1e-8):
         # associated with the specific class index
         inputs = tf.cast(img_array, tf.float32)  # we use the preprocessed image
         (convOutputs, predictions) = gradModel(inputs)
-        loss = predictions[:, label]
+        loss = predictions[:, np.argmax(label)]
+
     # use automatic differentiation to compute the gradients
     grads = tape.gradient(loss, convOutputs)
 
@@ -128,12 +129,12 @@ if __name__ == '__main__':
     dg_val0 = DataGen(batch_size, (256, 256), x_test_fold0, y_test_fold0)
     for i in range(dg_train0.__len__()):
         img, label = dg_train0.__getitem__(i)
-        label = np.argmax(label)
 
         grad_cam, predictions = GradCam(model, np.expand_dims(img[0, :, :, :], axis=0), label,
                                         'global_average_pooling2d')
 
         display_gradcam(img[0, :, :, :], grad_cam)
+
     for i in range(dg_val0.__len__()):
         img, label = dg_val0.__getitem__(i)
         label = np.argmax(label)

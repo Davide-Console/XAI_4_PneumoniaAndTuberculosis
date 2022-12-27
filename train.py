@@ -339,7 +339,7 @@ if __name__ == '__main__':
 
     seed = 1
     classes = 3
-    batch_size = 16
+    batch_size = 32
 
     patients = make_list_of_patients()
 
@@ -367,9 +367,9 @@ if __name__ == '__main__':
     for c in range(classes):
         cl_w.update({c: 1})
 
-    cl_w.update({TUBERCULOSIS: 3})
+    cl_w.update({TUBERCULOSIS: 4})
 
     freezeFE = False
-    variable_training(net, dg_train0, dg_val0, epochs=900, epoch_flags=100,
+    variable_training(net, dg_train0, dg_val0, epochs=180, epoch_flags=20,
                       learn_rates=learn_rates, loss_functions=loss_function, class_weights=cl_w, adjust_weights=True,
                       classes=classes, frozen_FE=freezeFE)
