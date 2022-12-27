@@ -326,7 +326,7 @@ def variable_training(model, train_dataset, val_dataset, epochs: int, epoch_flag
         print(classification_report(np.argmax(y_true, axis=-1), np.argmax(y_pred, axis=-1), digits=4,
                                     output_dict=False))
         if adjust_weights:
-            class_weights = update_weights(scores, classes, power=5, offset=6)
+            class_weights = update_weights(scores, classes, power=5, offset=3)
             print("Weights updated to: ")
             print(class_weights)
 
@@ -367,7 +367,7 @@ if __name__ == '__main__':
     for c in range(classes):
         cl_w.update({c: 1})
 
-    cl_w.update({TUBERCULOSIS: 6})
+    cl_w.update({TUBERCULOSIS: 4})
 
     freezeFE = False
     variable_training(net, dg_train0, dg_val0, epochs=180, epoch_flags=20,
