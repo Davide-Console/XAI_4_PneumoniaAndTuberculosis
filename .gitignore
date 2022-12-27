@@ -5,10 +5,15 @@ float_model/
 *.pkl
 train_set.zip
 *.png
+*.csv
+*.csv#
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
+GPU_MEMORY.py
+*.h5
+tests.py
 
 # C extensions
 *.so

@@ -1,4 +1,10 @@
 # @title Implementation
+import os
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+
+import execution_settings
+
 import cv2
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
@@ -9,10 +15,13 @@ from tensorflow.python.keras.optimizer_v1 import Adam
 
 from dataset_utils import *
 
+execution_settings.set_gpu()
+
 
 def display_gradcam(img, heatmap):
     def sigmoid(x, a, b, c):
         return c / (1 + np.exp(-a * (x - b)))
+
     # Rescale heatmap to a range 0-255
     heatmap = np.uint8(255 * heatmap)
 
@@ -27,8 +36,6 @@ def display_gradcam(img, heatmap):
     jet_heatmap = tf.keras.preprocessing.image.array_to_img(jet_heatmap)
     jet_heatmap = jet_heatmap.resize((img.shape[1], img.shape[0]))
 
-
-
     jet_heatmap = tf.keras.preprocessing.image.img_to_array(jet_heatmap)
 
     # Superimpose the heatmap on original image
@@ -39,7 +46,8 @@ def display_gradcam(img, heatmap):
     plt.imshow(superimposed_img)
     plt.show()
 
-def GradCam(model, img_array, label,  layer_name, eps=1e-8):
+
+def GradCam(model, img_array, label, layer_name, eps=1e-8):
     '''
     Creates a grad-cam heatmap given a model and a layer name contained with that model
 
@@ -60,14 +68,14 @@ def GradCam(model, img_array, label,  layer_name, eps=1e-8):
         outputs=[model.get_layer(layer_name).input,
                  model.output])
 
-
     with tf.GradientTape() as tape:
         # cast the image tensor to a float-32 data type, pass the
         # image through the gradient model, and grab the loss
         # associated with the specific class index
         inputs = tf.cast(img_array, tf.float32)  # we use the preprocessed image
         (convOutputs, predictions) = gradModel(inputs)
-        loss=predictions[:, np.argmax(label)]
+        loss = predictions[:, np.argmax(label)]
+
     # use automatic differentiation to compute the gradients
     grads = tape.gradient(loss, convOutputs)
 
@@ -101,8 +109,9 @@ def GradCam(model, img_array, label,  layer_name, eps=1e-8):
     # return the resulting heatmap to the calling function
     return heatmap, predictions
 
+
 if __name__ == '__main__':
-    model = tf.keras.models.load_model('float_model/0.9116-0.9416-f_model.h5')
+    model = tf.keras.models.load_model('explainedModels/0.9116-0.9416-f_model.h5')
     model.compile(optimizer='Adam',
                   loss=keras.losses.categorical_crossentropy,
                   metrics='accuracy')
@@ -110,7 +119,7 @@ if __name__ == '__main__':
     print(model.summary())
 
     patients = make_list_of_patients()
-    X_train_folds, y_train_folds, X_test_folds, y_test_folds = cross_validation_splits(data=patients)
+    X_train_folds, y_train_folds, X_test_folds, y_test_folds = stratified_cross_validation_splits(data=patients)
     x_train_fold0 = X_train_folds[0]
     y_train_fold0 = y_train_folds[0]
     x_test_fold0 = X_test_folds[0]
@@ -121,7 +130,8 @@ if __name__ == '__main__':
     for i in range(dg_train0.__len__()):
         img, label = dg_train0.__getitem__(i)
 
-        grad_cam, predictions = GradCam(model, np.expand_dims(img[0, :, :, :], axis=0), label, 'global_average_pooling2d')
+        grad_cam, predictions = GradCam(model, np.expand_dims(img[0, :, :, :], axis=0), label,
+                                        'global_average_pooling2d')
 
         display_gradcam(img[0, :, :, :], grad_cam)
 
