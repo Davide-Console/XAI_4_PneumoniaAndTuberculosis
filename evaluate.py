@@ -30,13 +30,13 @@ def evaluate(model, test_datagen):
 
 
 if __name__ == '__main__':
-    model_path = 'explainedModels/0.9434-0.9972-f_model.h5'
+    model_path = 'explainedModels/0.9272-0.9999-f_model.h5'
     model = tf.keras.models.load_model(model_path)
 
     patients = make_list_of_patients()
     patients_train, patients_test = test_split(data=patients)
     X_test, y_test = dataframe2lists(patients_test)
 
-    dg_test = DataGen(1, (256, 256), X_test, y_test)
+    dg_test = DataGen(32, (256, 256), X_test, y_test)
 
     evaluate(model, dg_test)

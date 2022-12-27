@@ -55,7 +55,7 @@ def get_occluded_probabilities(img, predictor, index, patch_size=16, stride=1):
 
 if __name__ == '__main__':
     image_indexes = [31, 39, 99]  # N, P, T
-    model_path = 'explainedModels/0.9116-0.9416-f_model.h5'
+    model_path = 'explainedModels/0.9272-0.9999-f_model.h5'
     patch = 32
     stride = 16
 
