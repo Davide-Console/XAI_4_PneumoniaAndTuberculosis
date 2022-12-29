@@ -20,18 +20,18 @@ ex_img = cv2.resize(ex_img, img_size, interpolation=cv2.INTER_CUBIC)
 fd = hog(ex_img, orientations=9, pixels_per_cell=(16, 16),
          cells_per_block=(2, 2), visualize=False, channel_axis=None)
 
-X = np.zeros(shape=(len(X_train[:3000]),) + fd.shape)
+X = np.zeros(shape=(len(X_train),) + fd.shape)
 
-for i in tqdm(range(len(X_train[:3000]))):
+for i in tqdm(range(len(X_train))):
     img = cv2.imread('dataset/' + X_train[i], 0)
     img = cv2.resize(img, img_size, interpolation=cv2.INTER_CUBIC)
     fd = hog(img, orientations=9, pixels_per_cell=(16, 16),
              cells_per_block=(2, 2), visualize=False, channel_axis=None)
     X[i] = fd
 
-clf = SVC()
+clf = SVC(class_weight='balanced')
 
-y = np.asarray(y_train[:3000])
+y = np.asarray(y_train)
 clf.fit(X, y)
 
 X = np.zeros(shape=(len(X_test),) + fd.shape)
