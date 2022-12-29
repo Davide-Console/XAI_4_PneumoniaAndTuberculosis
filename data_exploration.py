@@ -36,7 +36,7 @@ if __name__ == '__main__':
     label_group_v = group_val[['count', 'label']].groupby(['label']).count().reset_index()
     label_group_v['dataset'] = 'validation'
     label_group=pd.merge(left=label_group_t, right=label_group_v, how='outer')
-    sns.barplot(label_group, x='label', y='count', hue='dataset')
+    sns.barplot(x='label', y='count', hue='dataset', data=label_group)
     title="Number of images per class"
     plt.title(title)
     plt.show()
