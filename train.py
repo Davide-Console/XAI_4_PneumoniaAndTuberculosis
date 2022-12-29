@@ -339,7 +339,7 @@ if __name__ == '__main__':
 
     seed = 1
     classes = 3
-    batch_size = 2
+    batch_size = 32
 
     patients = make_list_of_patients()
 
