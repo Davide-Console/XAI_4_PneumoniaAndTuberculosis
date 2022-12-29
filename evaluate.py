@@ -30,7 +30,7 @@ def evaluate(model, test_datagen):
 
 
 if __name__ == '__main__':
-    model_path = 'explainedModels/0.9272-0.9999-f_model.h5'
+    model_path = 'explainedModels/0.9341-0.9998-f_model.h5'
     model = tf.keras.models.load_model(model_path)
 
     patients = make_list_of_patients()

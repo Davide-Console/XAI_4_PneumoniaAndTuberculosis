@@ -3,6 +3,7 @@ import pandas as pd
 from tensorflow import keras
 from sklearn.model_selection import StratifiedKFold, train_test_split
 import cv2
+from skimage.color import gray2rgb
 
 PATH_NORMAL = 'dataset/normal'
 PATH_PNEUMONIA = 'dataset/pneumonia'
@@ -15,24 +16,30 @@ TUBERCULOSIS = 2
 
 class DataGen(keras.utils.Sequence):
 
-    def __init__(self, batch_size, img_size, input_paths, target):
+    def __init__(self, batch_size, img_size, input_paths, target, weights=None):
         self.batch_size = batch_size
         self.img_size = img_size  # (400, 400)
         self.input_img_paths = input_paths
         self.target = target
+        self.imagenet = weights == "imagenet"
+        self.channels = 3 if self.imagenet else 1
         self.directory = 'dataset/'
 
     def __getitem__(self, index):
         i = index * self.batch_size
         batch_input_img_paths = self.input_img_paths[i: i + self.batch_size]
         batch_target = self.target[i: i + self.batch_size]
-        x = np.zeros((self.batch_size,) + self.img_size + (1,))
+        x = np.zeros((self.batch_size,) + self.img_size + (self.channels,))
         y = batch_target
 
         for j, path in enumerate(batch_input_img_paths):
             img = cv2.imread(self.directory + path, 0)  # read as grayscale
             img = cv2.resize(img, self.img_size, interpolation=cv2.INTER_CUBIC)
-            x[j] = np.expand_dims(img, 2)
+            if self.imagenet:
+                img = gray2rgb(img)
+                x[j] = img
+            else:
+                x[j] = np.expand_dims(img, 2)
 
         return x, keras.utils.to_categorical(y, num_classes=3)
 
