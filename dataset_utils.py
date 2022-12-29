@@ -1,8 +1,11 @@
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 from tensorflow import keras
 from sklearn.model_selection import StratifiedKFold, train_test_split
 import cv2
+from skimage.color import gray2rgb
+from scipy import ndimage
 
 PATH_NORMAL = 'dataset/normal'
 PATH_PNEUMONIA = 'dataset/pneumonia'
@@ -15,24 +18,31 @@ TUBERCULOSIS = 2
 
 class DataGen(keras.utils.Sequence):
 
-    def __init__(self, batch_size, img_size, input_paths, target):
+    def __init__(self, batch_size, img_size, input_paths, target, weights=None):
         self.batch_size = batch_size
         self.img_size = img_size  # (400, 400)
         self.input_img_paths = input_paths
         self.target = target
+        self.imagenet = weights == "imagenet"
+        self.channels = 3 if self.imagenet else 1
         self.directory = 'dataset/'
 
     def __getitem__(self, index):
         i = index * self.batch_size
         batch_input_img_paths = self.input_img_paths[i: i + self.batch_size]
         batch_target = self.target[i: i + self.batch_size]
-        x = np.zeros((self.batch_size,) + self.img_size + (1,))
+        x = np.zeros((self.batch_size,) + self.img_size + (self.channels,))
         y = batch_target
 
         for j, path in enumerate(batch_input_img_paths):
             img = cv2.imread(self.directory + path, 0)  # read as grayscale
             img = cv2.resize(img, self.img_size, interpolation=cv2.INTER_CUBIC)
-            x[j] = np.expand_dims(img, 2)
+
+            if self.imagenet:
+                img = gray2rgb(img)
+                x[j] = img
+            else:
+                x[j] = np.expand_dims(img, 2)
 
         return x, keras.utils.to_categorical(y, num_classes=3)
 
@@ -75,7 +85,7 @@ def get_images(indexes):
     y_test_fold0 = y_test_folds[0]
 
     batch_size = 1
-    dg_val0 = DataGen(batch_size, (256, 256), x_test_fold0, y_test_fold0)
+    dg_val0 = DataGenFiltered(batch_size, (256, 256), x_test_fold0, y_test_fold0)
 
     imgs = []
     lbls = []
@@ -154,3 +164,51 @@ def stratified_cross_validation_splits(data: pd.DataFrame, fold=5, shuffle=True,
         y_test_folds.append(y_test)
 
     return X_train_folds, y_train_folds, X_test_folds, y_test_folds
+
+
+class DataGenFiltered(keras.utils.Sequence):
+
+    def __init__(self, batch_size, img_size, input_paths, target, weights=None):
+        self.batch_size = batch_size
+        self.img_size = img_size  # (400, 400)
+        self.input_img_paths = input_paths
+        self.target = target
+        self.imagenet = weights == "imagenet"
+        self.channels = 3 if self.imagenet else 1
+        self.directory = 'dataset/'
+
+    def __getitem__(self, index):
+        i = index * self.batch_size
+        batch_input_img_paths = self.input_img_paths[i: i + self.batch_size]
+        batch_target = self.target[i: i + self.batch_size]
+        x = np.zeros((self.batch_size,) + self.img_size + (self.channels,))
+        y = batch_target
+
+        for j, path in enumerate(batch_input_img_paths):
+            img = cv2.imread(self.directory + path, 0)  # read as grayscale
+            img = cv2.resize(img, self.img_size, interpolation=cv2.INTER_CUBIC)
+            img = cv2.medianBlur(img, ksize=5)
+            img = ndimage.uniform_filter(img, size=3)
+
+            if self.imagenet:
+                img = gray2rgb(img)
+                x[j] = img
+            else:
+                x[j] = np.expand_dims(img, 2)
+
+        return x, keras.utils.to_categorical(y, num_classes=3)
+
+    def __len__(self):
+        return len(self.target) // self.batch_size
+
+
+if __name__ == '__main__':
+    index_image = [1]  # 1 -> Uniform, 12 -> Salt&Pepper, 18 -> Blurred, 19 -> Inverted, 124 -> Burned
+
+    image1, label1 = get_images(index_image)
+
+    for img, label in zip(image1, label1):
+        img1 = img[0, :, :, 0]
+        plt.imshow(img1 / 255, cmap='gray')
+        plt.title("median+mean filter")
+        plt.show()

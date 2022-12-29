@@ -95,6 +95,8 @@ def get_EfficientNetB3(weights=None, input_shape=(256, 256, 1), classes=8, regul
     model : keras.Model
         A compiled EfficientNetB3 model.
     """
+    if weights == 'imagenet':
+        input_shape = (256, 256, 3)
     model = EfficientNetB3(include_top=False,
                            weights=weights,
                            input_shape=input_shape,

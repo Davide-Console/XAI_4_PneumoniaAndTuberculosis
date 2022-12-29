@@ -353,10 +353,11 @@ if __name__ == '__main__':
     x_val_fold0 = X_val_folds[0]
     y_val_fold0 = y_val_folds[0]
 
-    dg_train0 = DataGen(batch_size, (256, 256), x_train_fold0, y_train_fold0)
-    dg_val0 = DataGen(batch_size, (256, 256), x_val_fold0, y_val_fold0)
+    weights = "imagenet"
+    dg_train0 = DataGenFiltered(batch_size, (256, 256), x_train_fold0, y_train_fold0, weights=weights)
+    dg_val0 = DataGenFiltered(batch_size, (256, 256), x_val_fold0, y_val_fold0, weights=weights)
 
-    net = get_EfficientNetB3(classes=classes, weights=None, l1=0.00001, l2=0.00001)
+    net = get_EfficientNetB3(classes=classes, weights=weights, l1=0.00001, l2=0.00001)
 
     learn_rates = [0.001, 0.0006, 3.6784e-04, 2.1350e-04, 1.2595e-04, 8.0690e-05, 6.0140e-05, 5.0330e-05,
                    5.0330e-06, 1.0011e-07]
@@ -369,7 +370,7 @@ if __name__ == '__main__':
 
     cl_w.update({TUBERCULOSIS: 4})
 
-    freezeFE = False
+    freezeFE = [True] * 2 + [False] * 7
     variable_training(net, dg_train0, dg_val0, epochs=180, epoch_flags=20,
                       learn_rates=learn_rates, loss_functions=loss_function, class_weights=cl_w, adjust_weights=True,
                       classes=classes, frozen_FE=freezeFE)
