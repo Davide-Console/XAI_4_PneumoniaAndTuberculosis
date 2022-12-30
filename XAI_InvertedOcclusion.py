@@ -31,6 +31,7 @@ def get_occluded_probabilities(img, predictor, index, patch_size=16, stride=1):
     dims = img.shape
     img_height = dims[0]
     img_width = dims[1]
+
     occluded_imgs = []
     probs = np.zeros(shape=(len(range(0, img_height - patch_size + 1, stride)),
                             len(range(0, img_width - patch_size + 1, stride))))
@@ -41,9 +42,9 @@ def get_occluded_probabilities(img, predictor, index, patch_size=16, stride=1):
             occluded_image = np.copy(img)
             # Set all the image except the patch to zero
             tmp = np.zeros(occluded_image.shape)
-            tmp[y:y + patch_size, x:x + patch_size] = 1
+            tmp[y:y + patch_size, x:x + patch_size, :] = 1
             occluded_image = occluded_image * tmp
-            occluded_imgs.append(np.expand_dims(occluded_image, axis=-1))
+            occluded_imgs.append(occluded_image)
 
         occluded_imgs = np.asarray(occluded_imgs)
         predictions = predictor.predict(occluded_imgs)
@@ -57,12 +58,14 @@ def get_occluded_probabilities(img, predictor, index, patch_size=16, stride=1):
 
 if __name__ == '__main__':
     image_indexes = [31, 39, 99]  # N, P, T
-    model_path = 'explainedModels/0.9272-0.9999-f_model.h5'
+    model_path = 'explainedModels/0.9722-0.9999-f_model.h5'
     patch = 32
     stride = 16
+    filtered_input = True  # If DataGenFiltered is used during train set this to true
 
-    images, labels = get_images(image_indexes)
     model = tf.keras.models.load_model(model_path)
+    input_channels = model.layers[0].input_shape[0][-1]
+    images, labels = get_images(image_indexes, filtered=filtered_input, input_channels=input_channels)
 
     fig, axs = plt.subplots(nrows=len(image_indexes), ncols=1, constrained_layout=True)
     fig.suptitle('Inverted Occlusion Method')
@@ -82,7 +85,8 @@ if __name__ == '__main__':
 
         title = "True: " + LABELS[np.argmax(label)] + " - Predicted: " + LABELS[np.argmax(pred)]
 
-        patches_probabilities = get_occluded_probabilities(image[0, :, :, 0], model, top_label_index, patch_size=patch, stride=stride)
+        patches_probabilities = get_occluded_probabilities(image[0, :, :, :], model, top_label_index,
+                                                           patch_size=patch, stride=stride)
         patch_heatmap = 1 - (top_label_probability - patches_probabilities)
 
         subfig.suptitle(title)
