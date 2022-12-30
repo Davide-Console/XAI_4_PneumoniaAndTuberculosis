@@ -51,7 +51,7 @@ def explanation_heatmap(lime_exp, exp_class):
 if __name__ == '__main__':
     image_indexes = [31, 39, 99]  # N, P, T
     model_path = 'explainedModels/0.9722-0.9999-f_model.h5'
-    filtered_input = True  # DataGenFiltered is used during train set this to true
+    filtered_input = True  # If DataGenFiltered is used during train set this to true
 
     pred2explain = 0  # index of the label to be analyzed. 0 means the label with higher probability
     min_importance = 0.25  # minimum POSITIVE importance, in percentage, of superpixels to be shown
