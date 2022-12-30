@@ -1,12 +1,24 @@
 from dataset_utils import *
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
+from sklearn.decomposition import PCA, KernelPCA
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
 import seaborn as sns
 
 LABELS = ["NORMAL", "PNEUMONIA", "TUBERCULOSIS"]
+
+def get_x(datagen):
+    x = []
+    #y_train0= []
+    for index in range(datagen.__len__()):
+        img, lbl = datagen.__getitem__(index)
+        x.append(img)
+        #y_train0.append(lbl)
+    X=np.concatenate(x)
+    return X
+
 if __name__ == '__main__':
     seed = 1
     classes = 3
@@ -27,6 +39,20 @@ if __name__ == '__main__':
     dg_train0 = DataGen(batch_size, (256, 256), x_train_fold0, y_train_fold0)
     dg_val0 = DataGen(batch_size, (256, 256), x_val_fold0, y_val_fold0)
 
+    x_train0=get_x(dg_train0)
+    x_val0=get_x(dg_val0)
+
+    # PCA
+    pca = PCA(n_components=32)  # linear pca
+    kernel_PCA = KernelPCA(n_components=400, kernel="rbf", gamma=1e-3, fit_inverse_transform=True, alpha=5e-3)
+
+    pca.fit(x_train0)
+    _ = kernel_PCA.fit(x_train0)
+
+    x_reconstructed_kernel=kernel_PCA.inverse_transform(kernel_PCA.transform(x_val0))
+    x_reconstructed_pca=pca.inverse_transform(pca.transform(x_val0))
+
+    #DATA EXPLORATION
     group_train = pd.DataFrame(list(zip(dg_train0.input_img_paths, dg_train0.target)),
                                columns=['count', 'label'])
     group_val = pd.DataFrame(list(zip(dg_val0.input_img_paths, dg_val0.target)),
@@ -35,9 +61,9 @@ if __name__ == '__main__':
     label_group_t['dataset'] = 'training'
     label_group_v = group_val[['count', 'label']].groupby(['label']).count().reset_index()
     label_group_v['dataset'] = 'validation'
-    label_group=pd.merge(left=label_group_t, right=label_group_v, how='outer')
+    label_group = pd.merge(left=label_group_t, right=label_group_v, how='outer')
     sns.barplot(x='label', y='count', hue='dataset', data=label_group)
-    title="Number of images per class"
+    title = "Number of images per class"
     plt.title(title)
     plt.show()
 
