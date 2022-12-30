@@ -37,8 +37,6 @@ if __name__ == '__main__':
     patients_train, patients_test = test_split(data=patients)
     X_test, y_test = dataframe2lists(patients_test)
 
-    """DataGenFiltered or DataGen: check it"""
-    # dg_test = DataGenFiltered(32, (256, 256), X_test, y_test)
-    dg_test = DataGen(32, (256, 256), X_test, y_test)
+    dg_test = DataGen(32, (256, 256), X_test, y_test, filtering=True)
 
     evaluate(model, dg_test)

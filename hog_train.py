@@ -34,7 +34,7 @@ cl_w = {}
 for c in range(classes):
     cl_w.update({c: 1})
 
-cl_w.update({TUBERCULOSIS: 11})
+cl_w.update({TUBERCULOSIS: 39})
 clf = SVC(class_weight=cl_w)
 
 y = np.asarray(y_train)
