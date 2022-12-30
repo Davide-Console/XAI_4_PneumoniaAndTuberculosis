@@ -2,6 +2,7 @@
 dataset/
 tb_logs/
 float_model/
+AE_model/
 *.pkl
 train_set.zip
 *.png

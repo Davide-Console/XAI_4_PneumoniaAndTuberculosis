@@ -38,6 +38,7 @@ class DataGen(keras.utils.Sequence):
             img = cv2.imread(self.directory + path, 0)  # read as grayscale
             img = cv2.resize(img, self.img_size, interpolation=cv2.INTER_CUBIC)
 
+
             if self.imagenet:
                 img = gray2rgb(img)
                 x[j] = img
@@ -49,6 +50,50 @@ class DataGen(keras.utils.Sequence):
     def __len__(self):
         return len(self.target) // self.batch_size
 
+def noise(array, type='gaussian'):
+    """
+    Adds random noise to each image in the supplied array.
+    """
+    if type=='gaussian':
+        np.random.seed(1)
+        noise_factor = 0.1
+        noisy_array = array + noise_factor * np.random.normal(loc=0.0, scale=1.0, size=array.shape)
+    elif type=='uniform':
+        uni_noise = np.zeros(array.shape, dtype=np.float32)
+        cv2.randu(uni_noise, 0, 1)
+        uni_noise = (uni_noise * 0.2).astype(np.float32)
+        noisy_array = array + uni_noise
+    return np.clip(noisy_array, 0.0, 1.0)
+
+
+class DG_autoencoder(keras.utils.Sequence):
+
+    def __init__(self, batch_size, img_size, input_paths, target):
+        self.batch_size = batch_size
+        self.img_size = img_size  # (400, 400)
+        self.input_img_paths = input_paths
+        self.target = target
+        self.directory = 'dataset/'
+        self.channels = 1
+
+    def __getitem__(self, index):
+        i = index * self.batch_size
+        batch_input_img_paths = self.input_img_paths[i: i + self.batch_size]
+
+        x_noisy = np.zeros((self.batch_size,) + self.img_size + (self.channels,))
+        x = np.zeros((self.batch_size,) + self.img_size + (self.channels,))
+
+        for j, path in enumerate(batch_input_img_paths):
+            img = cv2.imread(self.directory + path, 0)  # read as grayscale
+            img = cv2.resize(img, self.img_size, interpolation=cv2.INTER_CUBIC)
+            img = img.astype('float32') / 255
+            x_noisy[j] = np.expand_dims(noise(img, 'uniform'), 2)
+            x[j] = np.expand_dims(img, 2)
+
+        return x_noisy, x
+
+    def __len__(self):
+        return len(self.target) // self.batch_size
 
 def make_list_of_patients():
     data = pd.read_csv('dataset/labels_train.csv', sep=',')

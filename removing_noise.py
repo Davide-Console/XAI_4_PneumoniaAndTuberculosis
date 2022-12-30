@@ -39,11 +39,15 @@ def get_autoencoder():
     x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
 
     # Conv2 #
-    x = Conv2D(filters=16, kernel_size=(5, 5), activation='relu', padding='same')(x)
+    x = Conv2D(filters=64, kernel_size=(5, 5), activation='relu', padding='same')(x)
     x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
 
-    # Conv 3 #
-    x = Conv2D(filters=8, kernel_size=(5, 5), activation='relu', padding='same')(x)
+    # Conv3 #
+    x = Conv2D(filters=128, kernel_size=(3, 3), activation='relu', padding='same')(x)
+    x = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
+
+    # Conv4 #
+    x = Conv2D(filters=256, kernel_size=(3, 3), activation='relu', padding='same')(x)
     encoded = MaxPooling2D(pool_size=(2, 2), padding='same')(x)
 
     # Note:
@@ -56,11 +60,15 @@ def get_autoencoder():
     ############
 
     # DeConv1
-    x = Conv2D(8, (5, 5), activation='relu', padding='same')(encoded)
+    x = Conv2D(256, (3, 3), activation='relu', padding='same')(encoded)
+    x = UpSampling2D((2, 2))(x)
+
+    # DeConv1
+    x = Conv2D(128, (3, 3), activation='relu', padding='same')(x)
     x = UpSampling2D((2, 2))(x)
 
     # DeConv2
-    x = Conv2D(16, (5, 5), activation='relu', padding='same')(x)
+    x = Conv2D(64, (5, 5), activation='relu', padding='same')(x)
     x = UpSampling2D((2, 2))(x)
 
     # Deconv3
@@ -72,37 +80,37 @@ def get_autoencoder():
     autoencoder = Model(input_img, decoded)
 
 
-    autoencoder.compile(optimizer=SGD(lr=0.5), loss='mse')
+    autoencoder.compile(optimizer='adadelta', loss='mse')
 
     return autoencoder
 
 
 if __name__ == '__main__':
     seed = 1
-    batch_size = 16
+    classes = 3
+    batch_size = 32
 
     patients = make_list_of_patients()
-    patients['Length'] = patients['paths'].str.len()
-    patients = patients[patients['Length'] == 2]
-    patients = patients.drop('Length', axis=1)
 
     patients_train, patients_test = test_split(data=patients)
-    X_train_folds, y_train_folds, X_val_folds, y_val_folds = sscv_autoencoder(data=patients_train)
+    X_train_folds, y_train_folds, X_val_folds, y_val_folds = stratified_cross_validation_splits(data=patients_train)
+    X_test, y_test = dataframe2lists(patients_test)
 
     x_train_fold0 = X_train_folds[0]
     y_train_fold0 = y_train_folds[0]
 
-    x_test_fold0 = X_val_folds[0]
-    y_test_fold0 = y_val_folds[0]
+    x_val_fold0 = X_val_folds[0]
+    y_val_fold0 = y_val_folds[0]
 
     dg_train0 = DG_autoencoder(batch_size, (256, 256), x_train_fold0, y_train_fold0)
-    dg_val0 = DG_autoencoder(batch_size, (256, 256), x_test_fold0, y_test_fold0)
+    dg_val0 = DG_autoencoder(batch_size, (256, 256), x_val_fold0, y_val_fold0)
 
     model = get_autoencoder()
+    print(model.summary())
     callbacks = get_callbacks()
     #Train the model
     model.fit(dg_train0,
-             epochs=10,
+             epochs=1,
              batch_size=batch_size,
              shuffle=True,
              validation_data=dg_val0,
