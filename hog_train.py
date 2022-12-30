@@ -3,6 +3,7 @@ import numpy as np
 from sklearn.metrics import classification_report
 from tqdm import tqdm
 from sklearn.svm import SVC
+from sklearn.ensemble import RandomForestClassifier
 from skimage.feature import hog
 
 from dataset_utils import make_list_of_patients, test_split, dataframe2lists, TUBERCULOSIS
@@ -34,8 +35,9 @@ cl_w = {}
 for c in range(classes):
     cl_w.update({c: 1})
 
-cl_w.update({TUBERCULOSIS: 39})
+cl_w.update({TUBERCULOSIS: 19})
 clf = SVC(class_weight=cl_w)
+# clf = RandomForestClassifier(n_estimators=500)
 
 y = np.asarray(y_train)
 clf.fit(X, y)

@@ -1,3 +1,5 @@
+import random
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -18,7 +20,7 @@ TUBERCULOSIS = 2
 
 class DataGen(keras.utils.Sequence):
 
-    def __init__(self, batch_size, img_size, input_paths, target, weights=None, filtering=False):
+    def __init__(self, batch_size, img_size, input_paths, target, weights=None, filtering=False, data_aug=False):
         self.batch_size = batch_size
         self.img_size = img_size  # (400, 400)
         self.input_img_paths = input_paths
@@ -27,6 +29,7 @@ class DataGen(keras.utils.Sequence):
         self.channels = 3 if self.imagenet else 1
         self.directory = 'dataset/'
         self.filtering = filtering
+        self.data_aug = data_aug
 
     def __getitem__(self, index):
         i = index * self.batch_size
@@ -41,6 +44,15 @@ class DataGen(keras.utils.Sequence):
             if self.filtering:
                 img = cv2.medianBlur(img, ksize=5)
                 img = ndimage.uniform_filter(img, size=3)
+
+            if self.data_aug:
+                angle = random.randint(0, 359)
+                img = ndimage.rotate(img, angle=angle, reshape=False)
+                if random.randrange(0, 100) > 50:
+                    if random.randrange(0, 100) > 50:
+                        img = np.fliplr(img)
+                    if random.randrange(0, 100) > 50:
+                        img = np.flipud(img)
 
             if self.imagenet:
                 img = gray2rgb(img)

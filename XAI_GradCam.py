@@ -17,6 +17,8 @@ from dataset_utils import *
 
 execution_settings.set_gpu()
 
+LABELS = ["NORMAL", "PNEUMONIA", "TUBERCULOSIS"]
+
 
 def display_gradcam(img, heatmap, emphasize=False, thresh=None):
     def sigmoid(x, a, b, c):
@@ -47,8 +49,7 @@ def display_gradcam(img, heatmap, emphasize=False, thresh=None):
     superimposed_img = tf.keras.preprocessing.image.array_to_img(superimposed_img)
 
     # Display Grad CAM
-    plt.imshow(superimposed_img)
-    plt.show()
+    return superimposed_img
 
 
 def GradCam(model, img_array, label, layer_name, eps=1e-8):
@@ -115,35 +116,41 @@ def GradCam(model, img_array, label, layer_name, eps=1e-8):
 
 
 if __name__ == '__main__':
-    model = tf.keras.models.load_model('explainedModels/0.9116-0.9416-f_model.h5')
+    image_indexes = [31, 39, 99]  # N, P, T
+    model_path = 'explainedModels/0.9722-0.9999-f_model.h5'
+    filtered_input = True  # If DataGenFiltered is used during train set this to true
+    model = tf.keras.models.load_model(model_path)
+    input_channels = model.layers[0].input_shape[0][-1]
+
     model.compile(optimizer='Adam',
                   loss=keras.losses.categorical_crossentropy,
                   metrics='accuracy')
 
-    print(model.summary())
+    images, labels = get_images(image_indexes, filtered=filtered_input, input_channels=input_channels)
 
-    patients = make_list_of_patients()
-    X_train_folds, y_train_folds, X_test_folds, y_test_folds = stratified_cross_validation_splits(data=patients)
-    x_train_fold0 = X_train_folds[0]
-    y_train_fold0 = y_train_folds[0]
-    x_test_fold0 = X_test_folds[0]
-    y_test_fold0 = y_test_folds[0]
-    batch_size = 1
-    dg_train0 = DataGen(batch_size, (256, 256), x_train_fold0, y_train_fold0)
-    dg_val0 = DataGen(batch_size, (256, 256), x_test_fold0, y_test_fold0)
-    for i in range(dg_train0.__len__()):
-        img, label = dg_train0.__getitem__(i)
+    fig, axs = plt.subplots(nrows=len(image_indexes), ncols=1, constrained_layout=True)
+    fig.suptitle('GradCam Explainer')
+    for ax in axs:
+        ax.remove()
 
-        grad_cam, predictions = GradCam(model, np.expand_dims(img[0, :, :, :], axis=0), label,
+    gridspec = axs[0].get_subplotspec().get_gridspec()
+    subfigs = [fig.add_subfigure(gs) for gs in gridspec]
+
+    for image, label, subfig in zip(images, labels, subfigs):
+        grad_cam, predictions = GradCam(model, np.expand_dims(image[0, :, :, :], axis=0), label,
                                         'global_average_pooling2d')
 
-        display_gradcam(img[0, :, :, :], grad_cam)
+        result = display_gradcam(image[0, :, :, :], grad_cam)
 
-    for i in range(dg_val0.__len__()):
-        img, label = dg_val0.__getitem__(i)
-        label = np.argmax(label)
+        label = label[0]
+        pred = model.predict(image)
 
-        grad_cam, predictions = GradCam(model, np.expand_dims(img[0, :, :, :], axis=0), label,
-                                        'global_average_pooling2d')
+        title = "True: " + LABELS[np.argmax(label)] + " - Predicted: " + LABELS[np.argmax(pred)]
+        subfig.suptitle(title)
+        axs = subfig.subplots(nrows=1, ncols=2)
+        axs[0].imshow(image[0, :, :, :]/255)
+        axs[0].axis('off')
+        axs[1].imshow(result)
+        axs[1].axis('off')
 
-        display_gradcam(img[0, :, :, :], grad_cam)
+    plt.show()
