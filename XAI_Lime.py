@@ -21,6 +21,12 @@ def predict4lime(img2):
     # need to take only yhe first channel to make the prediction
 
 
+def predict4limeRGB(img2):
+    # print(img2.shape)
+    return model.predict(img2[:, :, :, :] * 255)  # the explain_instance function calls skimage.color.rgb2gray. So I
+    # need to take only yhe first channel to make the prediction
+
+
 def generate_prediction_sample(lime_exp, exp_class, weight=0.0, show_positive_only=True, hide_background=True):
     """
     Method to display and highlight super-pixels used by the black-box model to make predictions
@@ -44,7 +50,8 @@ def explanation_heatmap(lime_exp, exp_class):
 
 if __name__ == '__main__':
     image_indexes = [31, 39, 99]  # N, P, T
-    model_path = 'explainedModels/0.9272-0.9999-f_model.h5'
+    model_path = 'explainedModels/0.9722-0.9999-f_model.h5'
+    filtered_input = True  # DataGenFiltered is used during train set this to true
 
     pred2explain = 0  # index of the label to be analyzed. 0 means the label with higher probability
     min_importance = 0.25  # minimum POSITIVE importance, in percentage, of superpixels to be shown
@@ -52,8 +59,10 @@ if __name__ == '__main__':
     assert 3 > pred2explain > -1
     assert 1 > min_importance > 0
 
-    images, labels = get_images(image_indexes)
     model = tf.keras.models.load_model(model_path)
+    input_channels = model.layers[0].input_shape[0][-1]
+
+    images, labels = get_images(image_indexes, filtered=filtered_input, input_channels=input_channels)
 
     fig, axs = plt.subplots(nrows=len(image_indexes), ncols=1, constrained_layout=True)
     fig.suptitle('LIME Explainer')
@@ -67,8 +76,12 @@ if __name__ == '__main__':
 
     explainer = lime_image.LimeImageExplainer()
     for image, label, subfig in zip(images, labels, subfigs):
-        exp = explainer.explain_instance(image[0, :, :, 0] / 255, predict4lime, top_labels=3, hide_color=0,
-                                         num_samples=1000, random_seed=333)
+        if input_channels == 1:
+            exp = explainer.explain_instance(image[0, :, :, 0] / 255, predict4lime, top_labels=3, hide_color=0,
+                                             num_samples=1000, random_seed=333)
+        else:
+            exp = explainer.explain_instance(image[0, :, :, :] / 255, predict4limeRGB, top_labels=3, hide_color=0,
+                                             num_samples=1000, random_seed=333)
 
         label = label[0]
         pred = model.predict(image)

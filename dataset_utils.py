@@ -76,7 +76,7 @@ def make_list_of_patients():
     return patients
 
 
-def get_images(indexes):
+def get_images(indexes, filtered=False, input_channels=1):
     # TODO: take images from test set
     patients = make_list_of_patients()
     X_train_folds, y_train_folds, X_test_folds, y_test_folds = stratified_cross_validation_splits(data=patients)
@@ -85,7 +85,17 @@ def get_images(indexes):
     y_test_fold0 = y_test_folds[0]
 
     batch_size = 1
-    dg_val0 = DataGenFiltered(batch_size, (256, 256), x_test_fold0, y_test_fold0)
+    if input_channels == 1:
+        weights = None
+    elif input_channels == 3:
+        weights = "imagenet"
+    else:
+        raise ValueError
+
+    if filtered:
+        dg_val0 = DataGenFiltered(batch_size, (256, 256), x_test_fold0, y_test_fold0, weights=weights)
+    else:
+        dg_val0 = DataGen(batch_size, (256, 256), x_test_fold0, y_test_fold0, weights=weights)
 
     imgs = []
     lbls = []

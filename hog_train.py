@@ -5,7 +5,7 @@ from tqdm import tqdm
 from sklearn.svm import SVC
 from skimage.feature import hog
 
-from dataset_utils import make_list_of_patients, test_split, dataframe2lists
+from dataset_utils import make_list_of_patients, test_split, dataframe2lists, TUBERCULOSIS
 
 patients = make_list_of_patients()
 patients_train, patients_test = test_split(data=patients)
@@ -29,7 +29,13 @@ for i in tqdm(range(len(X_train))):
              cells_per_block=(2, 2), visualize=False, channel_axis=None)
     X[i] = fd
 
-clf = SVC(class_weight='balanced')
+classes = len(np.unique(y_train))
+cl_w = {}
+for c in range(classes):
+    cl_w.update({c: 1})
+
+cl_w.update({TUBERCULOSIS: 11})
+clf = SVC(class_weight=cl_w)
 
 y = np.asarray(y_train)
 clf.fit(X, y)
