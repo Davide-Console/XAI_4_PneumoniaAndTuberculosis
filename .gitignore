@@ -2,7 +2,6 @@
 dataset/
 tb_logs/
 float_model/
-AE_model/
 *.pkl
 train_set.zip
 *.png
@@ -15,6 +14,7 @@ __pycache__/
 *$py.class
 GPU_MEMORY.py
 *.h5
+!AE_model/0.0103f_model.h5
 tests.py
 
 # C extensions

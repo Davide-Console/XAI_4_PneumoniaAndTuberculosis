@@ -5,8 +5,9 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import SGD
 from dataset_utils import *
 import matplotlib.pyplot as plt
-from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint, CSVLogger
+from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint, CSVLogger, ReduceLROnPlateau
 import execution_settings
+import cv2
 
 def get_callbacks():
     tboard = 'tb_logs'
@@ -17,14 +18,25 @@ def get_callbacks():
     os.makedirs(chkpt_dir, exist_ok=True)
     chkpt_call = ModelCheckpoint(
         filepath=os.path.join(chkpt_dir, '{loss:.4f}f_model.h5'),
-        monitor='loss',
+        monitor='val_loss',
         verbose=1,
         save_best_only=True)
 
     logdir = 'train_log_AE.csv'
     csv_logger = CSVLogger(logdir, append=True, separator=';')
 
-    return [tb_call, chkpt_call, csv_logger]
+    reduce_on_plateau = ReduceLROnPlateau(
+        monitor="val_loss",
+        factor=0.1,
+        patience=50,
+        verbose=0,
+        mode="min",
+        min_delta=1e-04,
+        cooldown=0,
+        min_lr=0
+    )
+
+    return [tb_call, chkpt_call, csv_logger, reduce_on_plateau]
 
 def get_autoencoder():
     # The encoding process
@@ -80,12 +92,13 @@ def get_autoencoder():
     autoencoder = Model(input_img, decoded)
 
 
-    autoencoder.compile(optimizer='adadelta', loss='mse')
+    autoencoder.compile(optimizer='adam', loss='mse')
 
     return autoencoder
 
 
 if __name__ == '__main__':
+    '''
     seed = 1
     classes = 3
     batch_size = 32
@@ -104,29 +117,59 @@ if __name__ == '__main__':
 
     dg_train0 = DG_autoencoder(batch_size, (256, 256), x_train_fold0, y_train_fold0)
     dg_val0 = DG_autoencoder(batch_size, (256, 256), x_val_fold0, y_val_fold0)
-
+    
     model = get_autoencoder()
     print(model.summary())
     callbacks = get_callbacks()
     #Train the model
     model.fit(dg_train0,
-             epochs=1,
+             epochs=500,
              batch_size=batch_size,
              shuffle=True,
              validation_data=dg_val0,
              callbacks=callbacks,
              verbose=1
              )
-
+    '''
     n_img = 3
-    fig, axs = plt.subplots(nrows=n_img, ncols=3, constrained_layout=True)
-    fig.suptitle('< withoutNoise Synthetic withNoise >')
-
-    for i in range(n_img):
-        x, y = dg_train0.__getitem__(i)
+    model=tf.keras.models.load_model('AE_model/0.0103f_model.h5')
+    fig, axs = plt.subplots(nrows=n_img, ncols=2, constrained_layout=True)
+    fig.suptitle('< withNoise Synthetic>')
+    names=['dataset/P00001_1.png', 'dataset/P00003_1.png', 'dataset/P00004_1.jpeg', 'dataset/P00007_2.png', 'dataset/P00011_2.jpeg',
+           'dataset/P00014_2.png', 'dataset/P00024_1.jpeg', 'dataset/P00037_2.png', 'dataset/P00038_1.png']
+    for i in range(3):
+        x = cv2.imread(names[i], 0)
+        x= cv2.resize(x, (256, 256), interpolation=cv2.INTER_CUBIC)
+        x = x.astype('float32') / 255
+        x = np.expand_dims(x, 2)
+        x = np.expand_dims(x, 0)
         y_pred = model.predict(x)
-        axs[i, 0].imshow(y[0, :, :, 0], cmap='bone')
+        axs[i, 0].imshow(x[0, :, :, 0], cmap='bone')
         axs[i, 1].imshow(y_pred[0, :, :, 0], cmap='bone')
-        axs[i, 2].imshow(x[0, :, :, 0], cmap='bone')
     plt.show()
 
+    fig, axs = plt.subplots(nrows=n_img, ncols=2, constrained_layout=True)
+    fig.suptitle('< withNoise Synthetic>')
+    for i in range(3):
+        x = cv2.imread(names[3+i], 0)
+        x= cv2.resize(x, (256, 256), interpolation=cv2.INTER_CUBIC)
+        x = x.astype('float32') / 255
+        x = np.expand_dims(x, 2)
+        x = np.expand_dims(x, 0)
+        y_pred = model.predict(x)
+        axs[i, 0].imshow(x[0, :, :, 0], cmap='bone')
+        axs[i, 1].imshow(y_pred[0, :, :, 0], cmap='bone')
+    plt.show()
+
+    fig, axs = plt.subplots(nrows=n_img, ncols=2, constrained_layout=True)
+    fig.suptitle('< withNoise Synthetic>')
+    for i in range(3):
+        x = cv2.imread(names[6+i], 0)
+        x= cv2.resize(x, (256, 256), interpolation=cv2.INTER_CUBIC)
+        x = x.astype('float32') / 255
+        x = np.expand_dims(x, 2)
+        x = np.expand_dims(x, 0)
+        y_pred = model.predict(x)
+        axs[i, 0].imshow(x[0, :, :, 0], cmap='bone')
+        axs[i, 1].imshow(y_pred[0, :, :, 0], cmap='bone')
+    plt.show()

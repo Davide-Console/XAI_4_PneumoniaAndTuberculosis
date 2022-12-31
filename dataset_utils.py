@@ -8,6 +8,7 @@ from sklearn.model_selection import StratifiedKFold, train_test_split
 import cv2
 from skimage.color import gray2rgb
 from scipy import ndimage
+import tensorflow as tf
 
 PATH_NORMAL = 'dataset/normal'
 PATH_PNEUMONIA = 'dataset/pneumonia'
@@ -20,7 +21,7 @@ TUBERCULOSIS = 2
 
 class DataGen(keras.utils.Sequence):
 
-    def __init__(self, batch_size, img_size, input_paths, target, weights=None, filtering=False, data_aug=False):
+    def __init__(self, batch_size, img_size, input_paths, target, weights=None, filtering=False, data_aug=False, autoencoder=None):
         self.batch_size = batch_size
         self.img_size = img_size  # (400, 400)
         self.input_img_paths = input_paths
@@ -30,6 +31,9 @@ class DataGen(keras.utils.Sequence):
         self.directory = 'dataset/'
         self.filtering = filtering
         self.data_aug = data_aug
+        self.autoencoder = autoencoder
+        if self.autoencoder is not None:
+            self.model = tf.keras.models.load_model(autoencoder)
 
     def __getitem__(self, index):
         i = index * self.batch_size
@@ -54,6 +58,13 @@ class DataGen(keras.utils.Sequence):
                     if random.randrange(0, 100) > 50:
                         img = np.flipud(img)
 
+            if self.autoencoder is not None:
+                img = np.expand_dims(img, 2)
+                img = np.expand_dims(img, 0)
+                img = img.astype('float32') / 255
+                img = self.model.predict(img)
+                img = (img*255).astype('uint8')
+                img=img[0, :, :, 0]
 
             if self.imagenet:
                 img = gray2rgb(img)
@@ -72,12 +83,12 @@ def noise(array, type='gaussian'):
     """
     if type=='gaussian':
         np.random.seed(1)
-        noise_factor = 0.1
+        noise_factor = 0.2
         noisy_array = array + noise_factor * np.random.normal(loc=0.0, scale=1.0, size=array.shape)
     elif type=='uniform':
         uni_noise = np.zeros(array.shape, dtype=np.float32)
         cv2.randu(uni_noise, 0, 1)
-        uni_noise = (uni_noise * 0.2).astype(np.float32)
+        uni_noise = (uni_noise * 0.4).astype(np.float32)
         noisy_array = array + uni_noise
     return np.clip(noisy_array, 0.0, 1.0)
 

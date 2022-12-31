@@ -354,11 +354,9 @@ if __name__ == '__main__':
     y_val_fold0 = y_val_folds[0]
 
     weights = "imagenet"
-    filtering = True
-    dg_train0 = DataGen(batch_size, (256, 256), x_train_fold0, y_train_fold0,
-                        weights=weights, filtering=filtering, data_aug=True)
-    dg_val0 = DataGen(batch_size, (256, 256), x_val_fold0, y_val_fold0,
-                      weights=weights, filtering=filtering)
+    filtering = False
+    dg_train0 = DataGen(batch_size, (256, 256), x_train_fold0, y_train_fold0, weights=weights, filtering=filtering, autoencoder='AE_model/0.0103f_model.h5')
+    dg_val0 = DataGen(batch_size, (256, 256), x_val_fold0, y_val_fold0, weights=weights, filtering=filtering, autoencoder='AE_model/0.0103f_model.h5')
 
     net = get_EfficientNetB3(classes=classes, weights=weights, l1=0.00001, l2=0.00001)
 
