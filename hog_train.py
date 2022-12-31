@@ -3,7 +3,7 @@ import numpy as np
 from sklearn.metrics import classification_report
 from tqdm import tqdm
 from sklearn.svm import SVC
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
 from skimage.feature import hog
 
 from dataset_utils import make_list_of_patients, test_split, dataframe2lists, TUBERCULOSIS
@@ -18,16 +18,28 @@ img_size = (400, 400)
 ex_img = cv2.imread('dataset/' + X_train[0], 0)
 ex_img = cv2.resize(ex_img, img_size, interpolation=cv2.INTER_CUBIC)
 
-fd = hog(ex_img, orientations=9, pixels_per_cell=(16, 16),
-         cells_per_block=(2, 2), visualize=False, channel_axis=None)
+orientations = 18
+pixels_per_cell = (16, 16)
+cells_per_block = (2, 2) # prova con 1 1
+
+print("Hyperparams:")
+print(img_size)
+print(orientations)
+print(pixels_per_cell)
+print(cells_per_block)
+
+fd = hog(ex_img, orientations=orientations, pixels_per_cell=pixels_per_cell,
+         cells_per_block=cells_per_block, visualize=False, channel_axis=None)
+
+print(fd.shape)
 
 X = np.zeros(shape=(len(X_train),) + fd.shape)
 
 for i in tqdm(range(len(X_train))):
     img = cv2.imread('dataset/' + X_train[i], 0)
     img = cv2.resize(img, img_size, interpolation=cv2.INTER_CUBIC)
-    fd = hog(img, orientations=9, pixels_per_cell=(16, 16),
-             cells_per_block=(2, 2), visualize=False, channel_axis=None)
+    fd = hog(img, orientations=orientations, pixels_per_cell=pixels_per_cell,
+             cells_per_block=cells_per_block, visualize=False, channel_axis=None)
     X[i] = fd
 
 classes = len(np.unique(y_train))
@@ -37,7 +49,6 @@ for c in range(classes):
 
 cl_w.update({TUBERCULOSIS: 19})
 clf = SVC(class_weight=cl_w)
-# clf = RandomForestClassifier(n_estimators=500)
 
 y = np.asarray(y_train)
 clf.fit(X, y)
@@ -47,8 +58,8 @@ X = np.zeros(shape=(len(X_test),) + fd.shape)
 for i in tqdm(range(len(X_test))):
     img = cv2.imread('dataset/' + X_test[i], 0)
     img = cv2.resize(img, img_size, interpolation=cv2.INTER_CUBIC)
-    fd = hog(img, orientations=9, pixels_per_cell=(16, 16),
-             cells_per_block=(2, 2), visualize=False, channel_axis=None)
+    fd = hog(img, orientations=orientations, pixels_per_cell=pixels_per_cell,
+             cells_per_block=cells_per_block, visualize=False, channel_axis=None)
     X[i] = fd
 
 y_pred = clf.predict(X)
