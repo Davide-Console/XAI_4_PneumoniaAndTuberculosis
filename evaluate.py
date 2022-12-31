@@ -27,7 +27,6 @@ def evaluate(model, test_datagen, data_aug=False):
     y_pred = model.predict(test_datagen)
     if data_aug:
         for i in tqdm(range(17)):
-            print(i)
             y_pred = y_pred + model.predict(test_datagen)
 
     print(classification_report(np.argmax(y_true, axis=-1), np.argmax(y_pred, axis=-1), digits=4,
