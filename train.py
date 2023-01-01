@@ -347,11 +347,12 @@ if __name__ == '__main__':
     X_train_folds, y_train_folds, X_val_folds, y_val_folds = stratified_cross_validation_splits(data=patients_train)
     X_test, y_test = dataframe2lists(patients_test)
 
-    x_train_fold0 = X_train_folds[4]
-    y_train_fold0 = y_train_folds[4]
+    fold = 1
+    x_train_fold0 = X_train_folds[fold]
+    y_train_fold0 = y_train_folds[fold]
 
-    x_val_fold0 = X_val_folds[4]
-    y_val_fold0 = y_val_folds[4]
+    x_val_fold0 = X_val_folds[fold]
+    y_val_fold0 = y_val_folds[fold]
 
     weights = "imagenet"
     filtering = True
