@@ -347,7 +347,7 @@ if __name__ == '__main__':
     X_train_folds, y_train_folds, X_val_folds, y_val_folds = stratified_cross_validation_splits(data=patients_train)
     X_test, y_test = dataframe2lists(patients_test)
 
-    fold = 1
+    fold = 4
     x_train_fold0 = X_train_folds[fold]
     y_train_fold0 = y_train_folds[fold]
 
@@ -356,8 +356,11 @@ if __name__ == '__main__':
 
     weights = "imagenet"
     filtering = True
-    dg_train0 = DataGen(batch_size, (256, 256), x_train_fold0, y_train_fold0, weights=weights, filtering=filtering)
-    dg_val0 = DataGen(batch_size, (256, 256), x_val_fold0, y_val_fold0, weights=weights, filtering=filtering)
+    invert_black_bg = True
+    dg_train0 = DataGen(batch_size, (256, 256), x_train_fold0, y_train_fold0, weights=weights,
+                        filtering=filtering, invert_black_bg=invert_black_bg)
+    dg_val0 = DataGen(batch_size, (256, 256), x_val_fold0, y_val_fold0, weights=weights,
+                      filtering=filtering, invert_black_bg=invert_black_bg)
 
     net = get_EfficientNetB3(classes=classes, weights=weights, l1=0.00001, l2=0.00001)
 

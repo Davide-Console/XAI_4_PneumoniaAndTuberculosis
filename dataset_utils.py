@@ -5,6 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from skimage import filters
 from tensorflow import keras
+from sklearn.decomposition import PCA
 from sklearn.model_selection import StratifiedKFold, train_test_split
 import cv2
 from skimage.color import gray2rgb
@@ -24,7 +25,6 @@ TUBERCULOSIS = 2
 def invert_image(img):
     val = filters.threshold_otsu(img)
     mask = (img > val) * 1.0
-    total_hist, x = np.histogram(img, bins=256, range=(0, 255))
     histBR, x = np.histogram(mask[230:256, 230:256], bins=2, range=(0, 1))
     histTL, x = np.histogram(mask[0:25, 0:25], bins=2, range=(0, 1))
     histTR, x = np.histogram(mask[0:25, 230:256], bins=2, range=(0, 1))
@@ -43,7 +43,7 @@ def invert_image(img):
 class DataGen(keras.utils.Sequence):
 
     def __init__(self, batch_size, img_size, input_paths, target, weights=None, filtering=False, data_aug=False,
-                 autoencoder=None, invert_black_bg=False):
+                 autoencoder=None, invert_black_bg=False, pca_denoising=False):
         self.batch_size = batch_size
         self.img_size = img_size  # (400, 400)
         self.input_img_paths = input_paths
@@ -55,6 +55,7 @@ class DataGen(keras.utils.Sequence):
         self.data_aug = data_aug
         self.autoencoder = autoencoder
         self.invert_black_bg = invert_black_bg
+        self.pca_denoising = pca_denoising
         if self.autoencoder is not None:
             self.model = tf.keras.models.load_model(autoencoder)
 
@@ -98,6 +99,20 @@ class DataGen(keras.utils.Sequence):
                 x[j] = img
             else:
                 x[j] = np.expand_dims(img, 2)
+
+        if self.pca_denoising:
+            batch = x[:, :, :, 0]
+            x_for_pca = batch.reshape(len(batch), self.img_size[0] * self.img_size[1])
+            n_comp = 12
+            pca = PCA(n_components=n_comp)
+            pca.fit(x_for_pca)
+            x_reconstructed_pca = pca.inverse_transform(pca.transform(x_for_pca))
+            x_reconstructed_pca = x_reconstructed_pca.reshape(batch.shape)  # 32 256 256
+            for i in range(len(x)):
+                if self.imagenet:
+                    x[i] = gray2rgb(x_reconstructed_pca[i])
+                else:
+                    x[i] = np.expand_dims(x_reconstructed_pca[i], 2)
 
         return x, keras.utils.to_categorical(y, num_classes=3)
 
@@ -177,13 +192,10 @@ def make_list_of_patients():
     return patients
 
 
-def get_images(indexes, filtered=False, input_channels=1):
-    # TODO: take images from test set
+def get_images(indexes, filtered=False, input_channels=1, invert_black_bg=True):
     patients = make_list_of_patients()
-    X_train_folds, y_train_folds, X_test_folds, y_test_folds = stratified_cross_validation_splits(data=patients)
-
-    x_test_fold0 = X_test_folds[0]
-    y_test_fold0 = y_test_folds[0]
+    patients_train, patients_test = test_split(data=patients)
+    X_test, y_test = dataframe2lists(patients_test)
 
     batch_size = 1
     if input_channels == 1:
@@ -193,7 +205,7 @@ def get_images(indexes, filtered=False, input_channels=1):
     else:
         raise ValueError
 
-    dg_val0 = DataGen(batch_size, (256, 256), x_test_fold0, y_test_fold0, weights=weights, filtering=filtered)
+    dg_val0 = DataGen(batch_size, (256, 256), X_test, y_test, weights=weights, filtering=filtered, invert_black_bg=invert_black_bg)
 
     imgs = []
     lbls = []
