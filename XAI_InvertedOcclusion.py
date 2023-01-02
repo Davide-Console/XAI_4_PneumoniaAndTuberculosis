@@ -2,6 +2,7 @@ import math
 import os
 import pickle
 
+import cv2
 from matplotlib import pyplot as plt
 from skimage.feature import hog
 
@@ -89,7 +90,7 @@ if __name__ == '__main__':
     pickle_model_path = 'explainedModels/svm.pkl'
     patch = 64
     stride = 16
-    filtered_input = False
+    filtered_input = True
     pickle_model = True
 
     if not pickle_model:
@@ -135,11 +136,15 @@ if __name__ == '__main__':
         patch_heatmap = 1 - (top_label_probability - patches_probabilities)
 
         subfig.suptitle(title)
-        axs = subfig.subplots(nrows=1, ncols=2)
+        axs = subfig.subplots(nrows=1, ncols=3)
         axs[0].imshow(image[0, :, :, 0])
         axs[0].axis('off')
 
-        tmp = axs[1].imshow(patch_heatmap, cmap='RdBu', vmin=-patch_heatmap.max(), vmax=patch_heatmap.max())
+        tmp = axs[1].imshow(patch_heatmap, cmap='Blues', vmin=patch_heatmap.min(), vmax=patch_heatmap.max())
         subfig.colorbar(tmp, ax=axs[1])
+
+        axs[2].imshow(image[0, :, :, 0], cmap='gray')
+        axs[2].pcolormesh(cv2.resize(patch_heatmap, image[0, :, :, 0].shape, interpolation=cv2.INTER_CUBIC),
+                          cmap='Blues', alpha=0.50)
 
     plt.show()
