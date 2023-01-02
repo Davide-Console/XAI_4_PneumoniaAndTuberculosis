@@ -192,13 +192,10 @@ def make_list_of_patients():
     return patients
 
 
-def get_images(indexes, filtered=False, input_channels=1):
-    # TODO: take images from test set
+def get_images(indexes, filtered=False, input_channels=1, invert_black_bg=True):
     patients = make_list_of_patients()
-    X_train_folds, y_train_folds, X_test_folds, y_test_folds = stratified_cross_validation_splits(data=patients)
-
-    x_test_fold0 = X_test_folds[0]
-    y_test_fold0 = y_test_folds[0]
+    patients_train, patients_test = test_split(data=patients)
+    X_test, y_test = dataframe2lists(patients_test)
 
     batch_size = 1
     if input_channels == 1:
@@ -208,7 +205,7 @@ def get_images(indexes, filtered=False, input_channels=1):
     else:
         raise ValueError
 
-    dg_val0 = DataGen(batch_size, (256, 256), x_test_fold0, y_test_fold0, weights=weights, filtering=filtered)
+    dg_val0 = DataGen(batch_size, (256, 256), X_test, y_test, weights=weights, filtering=filtered, invert_black_bg=invert_black_bg)
 
     imgs = []
     lbls = []
