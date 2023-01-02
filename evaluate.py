@@ -34,8 +34,9 @@ def evaluate(model, test_datagen, data_aug=False):
 
 
 if __name__ == '__main__':
-    model_path = 'explainedModels/0.9707-0.9999-f_model.h5'
-    data_aug = True
+    model_path = 'explainedModels/0.9722-0.9999-f_model.h5'
+    data_aug = False
+    filtering = True
     weights = "imagenet"
     model = tf.keras.models.load_model(model_path)
 
@@ -43,6 +44,6 @@ if __name__ == '__main__':
     patients_train, patients_test = test_split(data=patients)
     X_test, y_test = dataframe2lists(patients_test)
 
-    dg_test = DataGen(32, (256, 256), X_test, y_test, weights=weights, filtering=True, data_aug=data_aug)
+    dg_test = DataGen(32, (256, 256), X_test, y_test, weights=weights, filtering=filtering, data_aug=data_aug)
 
     evaluate(model, dg_test, data_aug=data_aug)
