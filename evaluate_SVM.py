@@ -13,18 +13,17 @@ model = pickle.load(open('explainedModels/svm.pkl', 'rb'))
 
 patients = make_list_of_patients()
 patients_train, patients_test = test_split(data=patients)
-X_train, y_train = dataframe2lists(patients_train)
 X_test, y_test = dataframe2lists(patients_test)
 
 img_size = (256, 256)
 
-ex_img = cv2.imread('dataset/' + X_train[0], 0)
+ex_img = cv2.imread('dataset/' + X_test[0], 0)
 ex_img = cv2.resize(ex_img, img_size, interpolation=cv2.INTER_CUBIC)
 
 orientations = 18
 pixels_per_cell = (16, 16)
 cells_per_block = (2, 2)
-filtering = False
+filtering = True
 
 print("Hyperparams:")
 print(img_size)
