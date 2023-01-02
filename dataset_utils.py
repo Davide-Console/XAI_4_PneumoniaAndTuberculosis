@@ -3,10 +3,12 @@ import random
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from skimage import filters
 from tensorflow import keras
 from sklearn.model_selection import StratifiedKFold, train_test_split
 import cv2
 from skimage.color import gray2rgb
+from skimage.measure import label as label_fn
 from scipy import ndimage
 import tensorflow as tf
 
@@ -19,9 +21,29 @@ PNEUMONIA = 1
 TUBERCULOSIS = 2
 
 
+def invert_image(img):
+    val = filters.threshold_otsu(img)
+    mask = (img > val) * 1.0
+    total_hist, x = np.histogram(img, bins=256, range=(0, 255))
+    histBR, x = np.histogram(mask[230:256, 230:256], bins=2, range=(0, 1))
+    histTL, x = np.histogram(mask[0:25, 0:25], bins=2, range=(0, 1))
+    histTR, x = np.histogram(mask[0:25, 230:256], bins=2, range=(0, 1))
+    histBL, x = np.histogram(mask[230:256, 0:25], bins=2, range=(0, 1))
+    hist = histTL + histTR + histBL + histBR
+    labels = label_fn(mask)
+
+    if len(np.unique(labels)) < 100:
+        if hist[0] > hist[1]:
+            return img
+        else:
+            return 255 - img
+    return img
+
+
 class DataGen(keras.utils.Sequence):
 
-    def __init__(self, batch_size, img_size, input_paths, target, weights=None, filtering=False, data_aug=False, autoencoder=None):
+    def __init__(self, batch_size, img_size, input_paths, target, weights=None, filtering=False, data_aug=False,
+                 autoencoder=None, invert_black_bg=False):
         self.batch_size = batch_size
         self.img_size = img_size  # (400, 400)
         self.input_img_paths = input_paths
@@ -32,6 +54,7 @@ class DataGen(keras.utils.Sequence):
         self.filtering = filtering
         self.data_aug = data_aug
         self.autoencoder = autoencoder
+        self.invert_black_bg = invert_black_bg
         if self.autoencoder is not None:
             self.model = tf.keras.models.load_model(autoencoder)
 
@@ -45,6 +68,10 @@ class DataGen(keras.utils.Sequence):
         for j, path in enumerate(batch_input_img_paths):
             img = cv2.imread(self.directory + path, 0)  # read as grayscale
             img = cv2.resize(img, self.img_size, interpolation=cv2.INTER_CUBIC)
+
+            if self.invert_black_bg:
+                img = invert_image(img)
+
             if self.filtering:
                 img = cv2.medianBlur(img, ksize=5)
                 img = ndimage.uniform_filter(img, size=3)
@@ -63,8 +90,8 @@ class DataGen(keras.utils.Sequence):
                 img = np.expand_dims(img, 0)
                 img = img.astype('float32') / 255
                 img = self.model.predict(img)
-                img = (img*255).astype('uint8')
-                img=img[0, :, :, 0]
+                img = (img * 255).astype('uint8')
+                img = img[0, :, :, 0]
 
             if self.imagenet:
                 img = gray2rgb(img)
@@ -77,15 +104,16 @@ class DataGen(keras.utils.Sequence):
     def __len__(self):
         return len(self.target) // self.batch_size
 
+
 def noise(array, type='gaussian'):
     """
     Adds random noise to each image in the supplied array.
     """
-    if type=='gaussian':
+    if type == 'gaussian':
         np.random.seed(1)
         noise_factor = 0.2
         noisy_array = array + noise_factor * np.random.normal(loc=0.0, scale=1.0, size=array.shape)
-    elif type=='uniform':
+    elif type == 'uniform':
         uni_noise = np.zeros(array.shape, dtype=np.float32)
         cv2.randu(uni_noise, 0, 1)
         uni_noise = (uni_noise * 0.4).astype(np.float32)
@@ -121,6 +149,7 @@ class DG_autoencoder(keras.utils.Sequence):
 
     def __len__(self):
         return len(self.target) // self.batch_size
+
 
 def make_list_of_patients():
     data = pd.read_csv('dataset/labels_train.csv', sep=',')
