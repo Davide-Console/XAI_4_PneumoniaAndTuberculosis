@@ -24,7 +24,6 @@ TUBERCULOSIS = 2
 def invert_image(img):
     val = filters.threshold_otsu(img)
     mask = (img > val) * 1.0
-    total_hist, x = np.histogram(img, bins=256, range=(0, 255))
     histBR, x = np.histogram(mask[230:256, 230:256], bins=2, range=(0, 1))
     histTL, x = np.histogram(mask[0:25, 0:25], bins=2, range=(0, 1))
     histTR, x = np.histogram(mask[0:25, 230:256], bins=2, range=(0, 1))
