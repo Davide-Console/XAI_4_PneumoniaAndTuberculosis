@@ -1,7 +1,9 @@
 import math
 import os
+import pickle
 
 from matplotlib import pyplot as plt
+from skimage.feature import hog
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
@@ -15,7 +17,29 @@ execution_settings.set_gpu()
 LABELS = ["NORMAL", "PNEUMONIA", "TUBERCULOSIS"]
 
 
-def get_occluded_probabilities(img, predictor, index, patch_size=16, stride=1):
+def sklearn_predictions(predictor, occluded_imgs):
+    ex_img = occluded_imgs[0]
+    ex_img = ex_img[:, :, 0]
+    orientations = 18
+    pixels_per_cell = (16, 16)
+    cells_per_block = (2, 2)
+
+    fd = hog(ex_img, orientations=orientations, pixels_per_cell=pixels_per_cell,
+             cells_per_block=cells_per_block, visualize=False, channel_axis=None)
+
+    X = np.zeros(shape=(len(occluded_imgs),) + fd.shape)
+    for i in range(len(occluded_imgs)):
+        img = occluded_imgs[i, :, :, 0]
+        fd = hog(img, orientations=orientations, pixels_per_cell=pixels_per_cell,
+                 cells_per_block=cells_per_block, visualize=False, channel_axis=None)
+        X[i] = fd
+
+    y_pred = predictor.predict_proba(X)
+
+    return y_pred
+
+
+def get_occluded_probabilities(img, predictor, index, patch_size=16, stride=1, sklearn_model=False):
     """Iteratively set a square patch of an image to zero.
 
     Parameters:
@@ -24,7 +48,7 @@ def get_occluded_probabilities(img, predictor, index, patch_size=16, stride=1):
         index (int): The label to be analyzed
         patch_size (int, optional): The size of the patch to set to zero. Default is 16.
         stride (int, optional): The stride between patches. Default is 1
-
+        sklearn_model (bool, optional): whether the predictor is a keras model or a sklearn one. Default is keras
     Returns:
         occluded_imgs (list[np.array]): list of occluded images.
     """
@@ -47,7 +71,10 @@ def get_occluded_probabilities(img, predictor, index, patch_size=16, stride=1):
             occluded_imgs.append(occluded_image)
 
         occluded_imgs = np.asarray(occluded_imgs)
-        predictions = predictor.predict(occluded_imgs)
+        if not sklearn_model:
+            predictions = predictor.predict(occluded_imgs)
+        else:
+            predictions = sklearn_predictions(predictor, occluded_imgs)
         predictions = predictions[:, index]
         probs[line] = predictions
         line += 1
@@ -59,12 +86,19 @@ def get_occluded_probabilities(img, predictor, index, patch_size=16, stride=1):
 if __name__ == '__main__':
     image_indexes = [31, 39, 99]  # N, P, T
     model_path = 'explainedModels/0.9722-0.9999-f_model.h5'
-    patch = 32
+    pickle_model_path = 'explainedModels/svm.pkl'
+    patch = 64
     stride = 16
-    filtered_input = True  # If DataGenFiltered is used during train set this to true
+    filtered_input = False
+    pickle_model = True
 
-    model = tf.keras.models.load_model(model_path)
-    input_channels = model.layers[0].input_shape[0][-1]
+    if not pickle_model:
+        model = tf.keras.models.load_model(model_path)
+        input_channels = model.layers[0].input_shape[0][-1]
+    else:
+        model = pickle.load(open(pickle_model_path, 'rb'))
+        input_channels = 1
+
     images, labels = get_images(image_indexes, filtered=filtered_input, input_channels=input_channels)
 
     fig, axs = plt.subplots(nrows=len(image_indexes), ncols=1, constrained_layout=True)
@@ -77,7 +111,18 @@ if __name__ == '__main__':
 
     row = 0
     for image, label, subfig in zip(images, labels, subfigs):
-        pred = model.predict(image)[0]
+        if not pickle_model:
+            pred = model.predict(image)[0]
+        else:
+            orientations = 18
+            pixels_per_cell = (16, 16)
+            cells_per_block = (2, 2)
+            fd = hog(image[0, :, :, 0], orientations=orientations, pixels_per_cell=pixels_per_cell,
+                     cells_per_block=cells_per_block, visualize=False, channel_axis=None)
+            X = np.zeros(shape=(1,) + fd.shape)
+            X[0] = fd
+            pred = model.predict_proba(X)[0]
+
         label = label[0]
 
         top_label_index = np.argmax(pred)
@@ -86,7 +131,7 @@ if __name__ == '__main__':
         title = "True: " + LABELS[np.argmax(label)] + " - Predicted: " + LABELS[np.argmax(pred)]
 
         patches_probabilities = get_occluded_probabilities(image[0, :, :, :], model, top_label_index,
-                                                           patch_size=patch, stride=stride)
+                                                           patch_size=patch, stride=stride, sklearn_model=pickle_model)
         patch_heatmap = 1 - (top_label_probability - patches_probabilities)
 
         subfig.suptitle(title)
