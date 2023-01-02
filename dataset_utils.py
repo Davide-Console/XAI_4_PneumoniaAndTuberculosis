@@ -5,6 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from skimage import filters
 from tensorflow import keras
+from sklearn.decomposition import PCA
 from sklearn.model_selection import StratifiedKFold, train_test_split
 import cv2
 from skimage.color import gray2rgb
@@ -42,7 +43,7 @@ def invert_image(img):
 class DataGen(keras.utils.Sequence):
 
     def __init__(self, batch_size, img_size, input_paths, target, weights=None, filtering=False, data_aug=False,
-                 autoencoder=None, invert_black_bg=False):
+                 autoencoder=None, invert_black_bg=False, pca_denoising=False):
         self.batch_size = batch_size
         self.img_size = img_size  # (400, 400)
         self.input_img_paths = input_paths
@@ -54,6 +55,7 @@ class DataGen(keras.utils.Sequence):
         self.data_aug = data_aug
         self.autoencoder = autoencoder
         self.invert_black_bg = invert_black_bg
+        self.pca_denoising = pca_denoising
         if self.autoencoder is not None:
             self.model = tf.keras.models.load_model(autoencoder)
 
@@ -97,6 +99,20 @@ class DataGen(keras.utils.Sequence):
                 x[j] = img
             else:
                 x[j] = np.expand_dims(img, 2)
+
+        if self.pca_denoising:
+            batch = x[:, :, :, 0]
+            x_for_pca = batch.reshape(len(batch), self.img_size[0] * self.img_size[1])
+            n_comp = 12
+            pca = PCA(n_components=n_comp)
+            pca.fit(x_for_pca)
+            x_reconstructed_pca = pca.inverse_transform(pca.transform(x_for_pca))
+            x_reconstructed_pca = x_reconstructed_pca.reshape(batch.shape)  # 32 256 256
+            for i in range(len(x)):
+                if self.imagenet:
+                    x[i] = gray2rgb(x_reconstructed_pca[i])
+                else:
+                    x[i] = np.expand_dims(x_reconstructed_pca[i])
 
         return x, keras.utils.to_categorical(y, num_classes=3)
 
