@@ -75,7 +75,7 @@ if __name__ == '__main__':
     image_indexes = [31, 39, 99]  # N, P, T
     model_path = 'explainedModels/0.9776-1.0000-f_model.h5'
     pickle_model_path = 'explainedModels/svm.pkl'
-    filtered_input = True  # If DataGenFiltered is used during train set this to true
+    filtered_input = True
     pickle_model = True
 
     pred2explain = 0  # index of the label to be analyzed. 0 means the label with higher probability
@@ -90,7 +90,6 @@ if __name__ == '__main__':
     else:
         model = pickle.load(open(pickle_model_path, 'rb'))
         input_channels = 1
-        filtered_input = False
 
     images, labels = get_images(image_indexes, filtered=filtered_input, input_channels=input_channels)
 
