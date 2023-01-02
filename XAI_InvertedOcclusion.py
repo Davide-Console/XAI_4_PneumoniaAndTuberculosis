@@ -85,13 +85,14 @@ def get_occluded_probabilities(img, predictor, index, patch_size=16, stride=1, s
 
 
 if __name__ == '__main__':
-    image_indexes = [31, 39, 99]  # N, P, T
-    model_path = 'explainedModels/fold0-0.9722-0.9999-f_model.h5'
+    image_indexes = [31, 30, 99]  # N, P, T
+    model_path = 'explainedModels/fold1-0.9776-1.0000-f_model.h5'
     pickle_model_path = 'explainedModels/svm.pkl'
     patch = 64
     stride = 16
     filtered_input = True
     pickle_model = True
+    invert_black_bg = True
 
     if not pickle_model:
         model = tf.keras.models.load_model(model_path)
@@ -100,7 +101,8 @@ if __name__ == '__main__':
         model = pickle.load(open(pickle_model_path, 'rb'))
         input_channels = 1
 
-    images, labels = get_images(image_indexes, filtered=filtered_input, input_channels=input_channels)
+    images, labels = get_images(image_indexes, filtered=filtered_input, input_channels=input_channels,
+                                invert_black_bg=invert_black_bg)
 
     fig, axs = plt.subplots(nrows=len(image_indexes), ncols=1, constrained_layout=True)
     title = 'Inverted Occlusion Method'

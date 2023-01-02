@@ -9,7 +9,7 @@ from sklearn.svm import SVC
 from tqdm import tqdm
 
 from dataset_utils import make_list_of_patients, test_split, stratified_cross_validation_splits, dataframe2lists, \
-    TUBERCULOSIS
+    TUBERCULOSIS, invert_image
 
 patients = make_list_of_patients()
 
@@ -28,6 +28,7 @@ orientations = 18
 pixels_per_cell = (16, 16)
 cells_per_block = (2, 2)
 filtering = True
+invert_black_bg = True
 
 print("Hyperparams:")
 print(img_size)
@@ -53,6 +54,10 @@ for fold in range(folds):
     for i in tqdm(range(len(x_train_fold))):
         img = cv2.imread('dataset/' + x_train_fold[i], 0)
         img = cv2.resize(img, img_size, interpolation=cv2.INTER_CUBIC)
+
+        if invert_black_bg:
+            img = invert_image(img)
+
         if filtering:
             img = cv2.medianBlur(img, ksize=5)
             img = ndimage.uniform_filter(img, size=3)
@@ -83,6 +88,9 @@ for fold in range(folds):
     for i in tqdm(range(len(x_val_fold))):
         img = cv2.imread('dataset/' + x_val_fold[i], 0)
         img = cv2.resize(img, img_size, interpolation=cv2.INTER_CUBIC)
+
+        if invert_black_bg:
+            img = invert_image(img)
 
         if filtering:
             img = cv2.medianBlur(img, ksize=5)
