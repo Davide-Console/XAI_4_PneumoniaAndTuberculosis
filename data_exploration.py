@@ -1,14 +1,13 @@
 from dataset_utils import *
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
-from sklearn.decomposition import PCA, KernelPCA
+from sklearn.decomposition import PCA, KernelPCA, IncrementalPCA
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
 import seaborn as sns
 
 LABELS = ["NORMAL", "PNEUMONIA", "TUBERCULOSIS"]
-
 
 def get_x(datagen):
     x = []
@@ -40,38 +39,6 @@ if __name__ == '__main__':
 
     dg_train0 = DataGen(batch_size, (256, 256), x_train_fold0, y_train_fold0)
     dg_val0 = DataGen(batch_size, (256, 256), x_val_fold0, y_val_fold0)
-
-    x_train0 = get_x(dg_train0)
-    x_val0 = get_x(dg_val0)
-    num_img = 20
-    x_train0 = x_train0[:num_img]
-    x_val0 = x_val0[:num_img]
-
-    x_train0_reshaped = x_train0.reshape(len(x_train0), 256 * 256)
-    x_val0_reshaped = x_val0.reshape(len(x_val0), 256 * 256)
-
-    # PCA
-    pca = PCA()  # linear pca
-    kernel_PCA = KernelPCA(kernel="poly", gamma=1e-3, fit_inverse_transform=True, alpha=5e-3)
-
-    pca.fit(x_train0_reshaped)
-    _ = kernel_PCA.fit(x_train0_reshaped)
-
-    x_reconstructed_kernel = kernel_PCA.inverse_transform(kernel_PCA.transform(x_val0_reshaped))
-    x_reconstructed_pca = pca.inverse_transform(pca.transform(x_val0_reshaped))
-
-    x_reconstructed_kernel = x_reconstructed_kernel.reshape(x_val0.shape)
-    x_reconstructed_pca = x_reconstructed_pca.reshape(x_val0.shape)
-
-    for i in range(5):
-        fig, axs = plt.subplots(1, 3, constrained_layout=True)
-        axs[0].imshow(x_val0[i], cmap="gray")
-        axs[0].set_title("Original " + str(i))
-        axs[1].imshow(x_reconstructed_kernel[i], cmap="gray")
-        axs[1].set_title("Poly Kernel " + str(i))
-        axs[2].imshow(x_reconstructed_pca[i], cmap="gray")
-        axs[2].set_title("PCA reconstructed " + str(i))
-        plt.show()
 
     # DATA EXPLORATION
     group_train = pd.DataFrame(list(zip(dg_train0.input_img_paths, dg_train0.target)),
