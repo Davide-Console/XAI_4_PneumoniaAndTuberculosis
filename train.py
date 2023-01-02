@@ -356,10 +356,11 @@ if __name__ == '__main__':
 
     weights = "imagenet"
     filtering = True
+    invert_black_bg = True
     dg_train0 = DataGen(batch_size, (256, 256), x_train_fold0, y_train_fold0, weights=weights,
-                        filtering=filtering, invert_black_bg=True)
-    dg_val0 = DataGen(batch_size, (256, 256), x_val_fold0, y_val_fold0, weights=weights, filtering=filtering,
-                      invert_black_bg=True)
+                        filtering=filtering, invert_black_bg=invert_black_bg)
+    dg_val0 = DataGen(batch_size, (256, 256), x_val_fold0, y_val_fold0, weights=weights,
+                      filtering=filtering, invert_black_bg=invert_black_bg)
 
     net = get_EfficientNetB3(classes=classes, weights=weights, l1=0.00001, l2=0.00001)
 
