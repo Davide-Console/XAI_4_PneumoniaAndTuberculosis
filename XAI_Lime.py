@@ -1,7 +1,9 @@
 import os
+import pickle
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
+from skimage.feature import hog
 import execution_settings
 import matplotlib.pyplot as plt
 import numpy as np
@@ -27,6 +29,27 @@ def predict4limeRGB(img2):
     # need to take only yhe first channel to make the prediction
 
 
+def predict4limeSVM(img2):
+    ex_img = img2[0, :, :, 0]
+    orientations = 18
+    pixels_per_cell = (16, 16)
+    cells_per_block = (2, 2)
+
+    fd = hog(ex_img, orientations=orientations, pixels_per_cell=pixels_per_cell,
+             cells_per_block=cells_per_block, visualize=False, channel_axis=None)
+
+    X = np.zeros(shape=(len(img2),) + fd.shape)
+    for i in range(len(img2)):
+        img = img2[i, :, :, 0] * 255
+        fd = hog(img, orientations=orientations, pixels_per_cell=pixels_per_cell,
+                 cells_per_block=cells_per_block, visualize=False, channel_axis=None)
+        X[i] = fd
+
+    y_pred = model.predict_proba(X)
+
+    return y_pred
+
+
 def generate_prediction_sample(lime_exp, exp_class, weight=0.0, show_positive_only=True, hide_background=True):
     """
     Method to display and highlight super-pixels used by the black-box model to make predictions
@@ -50,17 +73,23 @@ def explanation_heatmap(lime_exp, exp_class):
 
 if __name__ == '__main__':
     image_indexes = [31, 39, 99]  # N, P, T
-    model_path = 'explainedModels/0.9722-0.9999-f_model.h5'
-    filtered_input = True  # If DataGenFiltered is used during train set this to true
+    model_path = 'explainedModels/0.9776-1.0000-f_model.h5'
+    pickle_model_path = 'explainedModels/svm.pkl'
+    filtered_input = True
+    pickle_model = True
 
     pred2explain = 0  # index of the label to be analyzed. 0 means the label with higher probability
-    min_importance = 0.25  # minimum POSITIVE importance, in percentage, of superpixels to be shown
+    min_importance = 0.25  # minimum POSITIVE/NEGATIVE importance, in percentage, of superpixels to be shown
 
     assert 3 > pred2explain > -1
     assert 1 > min_importance > 0
 
-    model = tf.keras.models.load_model(model_path)
-    input_channels = model.layers[0].input_shape[0][-1]
+    if not pickle_model:
+        model = tf.keras.models.load_model(model_path)
+        input_channels = model.layers[0].input_shape[0][-1]
+    else:
+        model = pickle.load(open(pickle_model_path, 'rb'))
+        input_channels = 1
 
     images, labels = get_images(image_indexes, filtered=filtered_input, input_channels=input_channels)
 
@@ -77,14 +106,28 @@ if __name__ == '__main__':
     explainer = lime_image.LimeImageExplainer()
     for image, label, subfig in zip(images, labels, subfigs):
         if input_channels == 1:
-            exp = explainer.explain_instance(image[0, :, :, 0] / 255, predict4lime, top_labels=3, hide_color=0,
-                                             num_samples=1000, random_seed=333)
+            if not pickle_model:
+                exp = explainer.explain_instance(image[0, :, :, 0] / 255, predict4lime, top_labels=3, hide_color=0,
+                                                 num_samples=1000, random_seed=333)
+            else:
+                exp = explainer.explain_instance(image[0, :, :, 0] / 255, predict4limeSVM, top_labels=3, hide_color=0,
+                                                 num_samples=1000, random_seed=333)
         else:
             exp = explainer.explain_instance(image[0, :, :, :] / 255, predict4limeRGB, top_labels=3, hide_color=0,
                                              num_samples=1000, random_seed=333)
 
         label = label[0]
-        pred = model.predict(image)
+        if not pickle_model:
+            pred = model.predict(image)
+        else:
+            orientations = 18
+            pixels_per_cell = (16, 16)
+            cells_per_block = (2, 2)
+            fd = hog(image[0, :, :, 0], orientations=orientations, pixels_per_cell=pixels_per_cell,
+                     cells_per_block=cells_per_block, visualize=False, channel_axis=None)
+            X = np.zeros(shape=(1,) + fd.shape)
+            X[0] = fd
+            pred = model.predict_proba(X)
 
         print("True class:", end=' ')
         print(label)
