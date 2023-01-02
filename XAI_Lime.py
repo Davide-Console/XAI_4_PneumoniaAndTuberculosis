@@ -73,7 +73,7 @@ def explanation_heatmap(lime_exp, exp_class):
 
 if __name__ == '__main__':
     image_indexes = [31, 39, 99]  # N, P, T
-    model_path = 'explainedModels/0.9776-1.0000-f_model.h5'
+    model_path = 'explainedModels/fold1-0.9776-1.0000-f_model.h5'
     pickle_model_path = 'explainedModels/svm.pkl'
     filtered_input = True
     pickle_model = True
@@ -94,7 +94,12 @@ if __name__ == '__main__':
     images, labels = get_images(image_indexes, filtered=filtered_input, input_channels=input_channels)
 
     fig, axs = plt.subplots(nrows=len(image_indexes), ncols=1, constrained_layout=True)
-    fig.suptitle('LIME Explainer')
+    title = 'Lime Explainer'
+    if pickle_model:
+        title = title + ' - SVM'
+    else:
+        title = title + ' - EfficientNetB3'
+    fig.suptitle(title)
     for ax in axs:
         ax.remove()
 

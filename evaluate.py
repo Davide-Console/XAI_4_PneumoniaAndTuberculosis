@@ -34,7 +34,7 @@ def evaluate(model, test_datagen, data_aug=False):
 
 
 if __name__ == '__main__':
-    model_path = 'explainedModels/0.9722-0.9999-f_model.h5'
+    model_path = 'explainedModels/fold2-0.9714-1.0000-f_model.h5'
     data_aug = False
     filtering = True
     weights = "imagenet"

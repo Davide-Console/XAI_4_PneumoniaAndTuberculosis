@@ -86,7 +86,7 @@ def get_occluded_probabilities(img, predictor, index, patch_size=16, stride=1, s
 
 if __name__ == '__main__':
     image_indexes = [31, 39, 99]  # N, P, T
-    model_path = 'explainedModels/0.9722-0.9999-f_model.h5'
+    model_path = 'explainedModels/fold0-0.9722-0.9999-f_model.h5'
     pickle_model_path = 'explainedModels/svm.pkl'
     patch = 64
     stride = 16
@@ -103,7 +103,12 @@ if __name__ == '__main__':
     images, labels = get_images(image_indexes, filtered=filtered_input, input_channels=input_channels)
 
     fig, axs = plt.subplots(nrows=len(image_indexes), ncols=1, constrained_layout=True)
-    fig.suptitle('Inverted Occlusion Method')
+    title = 'Inverted Occlusion Method'
+    if pickle_model:
+        title = title + ' - SVM'
+    else:
+        title = title + ' - EfficientNetB3'
+    fig.suptitle(title)
     for ax in axs:
         ax.remove()
 
