@@ -112,7 +112,7 @@ class DataGen(keras.utils.Sequence):
                 if self.imagenet:
                     x[i] = gray2rgb(x_reconstructed_pca[i])
                 else:
-                    x[i] = np.expand_dims(x_reconstructed_pca[i])
+                    x[i] = np.expand_dims(x_reconstructed_pca[i], 2)
 
         return x, keras.utils.to_categorical(y, num_classes=3)
 
