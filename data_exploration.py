@@ -78,8 +78,12 @@ if __name__ == '__main__':
     label_group = pd.merge(left=label_group, right=label_group_test, how='outer')
 
     ax = sns.barplot(x='label', y='count', hue='dataset', data=label_group)
+    for i in ax.containers:
+        ax.bar_label(i, )
     ax.set_xticklabels(LABELS)
     plt.title('Number of images per class')
+    name_fig = "chartsAndPlots/train-val-test.png"
+    plt.savefig(name_fig)
     plt.show()
 
     # DATA EXPLORATION - ROI Analysis
@@ -119,7 +123,8 @@ if __name__ == '__main__':
         plt.ylim([0, 50])
         title = "ROI histogram"
         plt.title(title)
-
+        name_fig = "chartsAndPlots/data_expl_img"+str(image_indexes[row])+".png"
+        plt.savefig(name_fig)
         row += 1
         plt.show()
 
@@ -163,6 +168,8 @@ if __name__ == '__main__':
 
     noise_labels = ['Normal Contrast', 'Complementary Contrast', 'Noisy/Corrupted']
     data = [round(count_normal / len(images_list), 4), round(count_inverted / len(images_list), 4), round(count_noise / len(images_list), 4)]
-    plt.pie(data, labels=noise_labels)
+    plt.pie(data,labels=noise_labels, autopct=lambda p: '{:.2f}%'.format(p * sum(data)))
     plt.title('Distribution of normal, inverted contrast, and noisy or corrupted images')
+    name_fig = "chartsAndPlots/normal-inverted-noisy.png"
+    plt.savefig(name_fig)
     plt.show()

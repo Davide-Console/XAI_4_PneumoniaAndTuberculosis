@@ -71,7 +71,7 @@ if __name__ == '__main__':
         axs[0, 0].set_title("Original")
 
         axs[0, 1].imshow(image_filt, cmap="gray")
-        axs[0, 1].set_title("Median+Mean filter")
+        axs[0, 1].set_title("Median+Uniform filter")
 
         axs[1, 0].imshow(image_autoencoder, cmap="gray")
         axs[1, 0].set_title("Autoencoder")
