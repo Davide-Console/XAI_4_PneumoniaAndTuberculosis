@@ -35,10 +35,12 @@ def get_x(datagen):
 
 
 if __name__ == '__main__':
+    # plots train-val-test sets distribution and the histograms of ROIs of some sample images
+
     seed = 1
     classes = 3
     batch_size = 32
-    
+
     images_list = make_list_of_patients()
 
     patients_train, patients_test = test_split(data=images_list)
@@ -53,6 +55,7 @@ if __name__ == '__main__':
 
     dg_train0 = DataGen(batch_size, (256, 256), x_train_fold0, y_train_fold0)
     dg_val0 = DataGen(batch_size, (256, 256), x_val_fold0, y_val_fold0)
+    dg_test = DataGen(batch_size, (256, 256), X_test, y_test)
 
     # DATA EXPLORATION - Stratification
     # plots the training-validation split for each class. The proportions in the graphs are respected for each one of
@@ -61,12 +64,20 @@ if __name__ == '__main__':
                                columns=['count', 'label'])
     group_val = pd.DataFrame(list(zip(dg_val0.input_img_paths, dg_val0.target)),
                              columns=['count', 'label'])
+    group_test = pd.DataFrame(list(zip(dg_test.input_img_paths, dg_test.target)),
+                              columns=['count', 'label'])
     label_group_t = group_train[['count', 'label']].groupby(['label']).count().reset_index()
     label_group_t['dataset'] = 'training'
     label_group_v = group_val[['count', 'label']].groupby(['label']).count().reset_index()
     label_group_v['dataset'] = 'validation'
     label_group = pd.merge(left=label_group_t, right=label_group_v, how='outer')
-    sns.barplot(x='label', y='count', hue='dataset', data=label_group)
+
+    label_group_test = group_test[['count', 'label']].groupby(['label']).count().reset_index()
+    label_group_test['dataset'] = 'test'
+    label_group = pd.merge(left=label_group, right=label_group_test, how='outer')
+
+    ax = sns.barplot(x='label', y='count', hue='dataset', data=label_group)
+    ax.set_xticklabels(LABELS)
     plt.title('Number of images per class')
     plt.show()
 
@@ -88,7 +99,7 @@ if __name__ == '__main__':
 
         label = label[0]
         roi = image[start_pointy:end_pointy, start_pointx:end_pointx]
-        image_rect = cv2.rectangle(gray2rgb(image)/255, (start_pointx, start_pointy), (end_pointx, end_pointy),
+        image_rect = cv2.rectangle(gray2rgb(image) / 255, (start_pointx, start_pointy), (end_pointx, end_pointy),
                                    (255, 0, 0), 2)
 
         plt.subplot(2, 2, 1)
@@ -134,7 +145,7 @@ if __name__ == '__main__':
         histTL, x2 = np.histogram(mask[0:25, 0:25], bins=2, range=(0, 1))
         histTR, x3 = np.histogram(mask[0:25, 230:256], bins=2, range=(0, 1))
         histBL, x4 = np.histogram(mask[230:256, 0:25], bins=2, range=(0, 1))
-        hist = histTL+histTR+histBL+histBR
+        hist = histTL + histTR + histBL + histBR
         labels = lfoo(mask)
 
         if len(np.unique(labels)) >= 100:
@@ -145,6 +156,6 @@ if __name__ == '__main__':
             else:
                 count_inverted += 1
 
-    print('Normal contrast images:\t', round(count_normal / len(images_list), 4)*100, '%')
-    print('Complementary contrast images:\t', round(count_inverted / len(images_list), 4)*100, '%')
-    print('Noisy/Corrupted images:\t', round(count_noise / len(images_list), 4)*100, '%')
+    print('Normal contrast images:\t', round(count_normal / len(images_list), 4) * 100, '%')
+    print('Complementary contrast images:\t', round(count_inverted / len(images_list), 4) * 100, '%')
+    print('Noisy/Corrupted images:\t', round(count_noise / len(images_list), 4) * 100, '%')
