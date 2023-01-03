@@ -10,7 +10,7 @@ if __name__ == '__main__':
     batch_size = 1
     batch_size_pca = 32
     image_indexes = [7, 19, 21]
-    img_path = ["dataset\P11642_1.jpeg", "dataset\P04618_1.jpeg", "dataset\P08347_1.jpeg"]
+    img_path = ["dataset/P11642_1.jpeg", "dataset/P04618_1.jpeg", "dataset/P08347_1.jpeg"]
     patients = make_list_of_patients()
 
     patients_train, patients_test = test_split(data=patients)
