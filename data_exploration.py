@@ -73,7 +73,7 @@ if __name__ == '__main__':
 
         fig, axs = plt.subplots(nrows=1, ncols=2)
         label = label[0]
-        image_rect = cv2.rectangle(image, (start_pointx, start_pointy), (end_pointx, end_pointy), 2)
+        image_rect = cv2.rectangle(gray2rgb(image)/255, (start_pointx, start_pointy), (end_pointx, end_pointy), (255, 0, 0), 2)
 
         axs[0].imshow(image_rect, cmap='gray')
 
