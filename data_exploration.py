@@ -1,17 +1,31 @@
 import tensorflow as tf
 from tqdm import tqdm
 
-image = tf.keras.preprocessing.image
-from skimage.measure import label as l
+from skimage.measure import label as lfoo
 from dataset_utils import *
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
 import seaborn as sns
 
+image = tf.keras.preprocessing.image
 LABELS = ["NORMAL", "PNEUMONIA", "TUBERCULOSIS"]
 
+
 def get_x(datagen):
+    """
+        Extract the images from a data generator and return as a single array.
+
+        Parameters
+        ----------
+        datagen : generator
+            A generator that yields image-label pairs.
+
+        Returns
+        -------
+        X : numpy array
+            A single array containing all the images from the generator. The images are squeezed along the last axis.
+    """
     x = []
     for index in range(datagen.__len__()):
         img, lbl = datagen.__getitem__(index)
@@ -30,7 +44,7 @@ if __name__ == '__main__':
     patients_train, patients_test = test_split(data=images_list)
     X_train_folds, y_train_folds, X_val_folds, y_val_folds = stratified_cross_validation_splits(data=patients_train)
     X_test, y_test = dataframe2lists(patients_test)
-    folds = 5
+
     x_train_fold0 = X_train_folds[0]
     y_train_fold0 = y_train_folds[0]
 
@@ -40,7 +54,9 @@ if __name__ == '__main__':
     dg_train0 = DataGen(batch_size, (256, 256), x_train_fold0, y_train_fold0)
     dg_val0 = DataGen(batch_size, (256, 256), x_val_fold0, y_val_fold0)
 
-    # DATA EXPLORATION
+    # DATA EXPLORATION - Stratification
+    # plots the training-validation split for each class. The proportions in the graphs are respected for each one of
+    # the folds
     group_train = pd.DataFrame(list(zip(dg_train0.input_img_paths, dg_train0.target)),
                                columns=['count', 'label'])
     group_val = pd.DataFrame(list(zip(dg_val0.input_img_paths, dg_val0.target)),
@@ -53,7 +69,10 @@ if __name__ == '__main__':
     sns.barplot(x='label', y='count', hue='dataset', data=label_group)
     plt.title('Number of images per class')
     plt.show()
-    
+
+    # DATA EXPLORATION - ROI Analysis
+    # selects significant images (representative of different kind of conditions) and plots the image, the ROI selected
+    # and the histogram f the ROI
     image_indexes = [1, 12, 18, 19, 124]
     start_pointx = 0
     end_pointx = 25
@@ -64,13 +83,13 @@ if __name__ == '__main__':
 
     row = 0
     for image, label in zip(images, labels):
-        plt.suptitle('Data Exploration for image n.' + str(image_indexes[row]) + '\nLabel: ' + LABELS[np.argmax(label)])
+        plt.suptitle('Data Exploration for image n.' + str(image_indexes[row]))
         image = image[0, :, :, 0]
 
         label = label[0]
         roi = image[start_pointy:end_pointy, start_pointx:end_pointx]
-        image_rect = cv2.rectangle(gray2rgb(image)/255, (start_pointx, start_pointy), (end_pointx, end_pointy), (255, 0, 0), 2)
-
+        image_rect = cv2.rectangle(gray2rgb(image)/255, (start_pointx, start_pointy), (end_pointx, end_pointy),
+                                   (255, 0, 0), 2)
 
         plt.subplot(2, 2, 1)
         plt.imshow(image_rect, cmap='gray')
@@ -92,7 +111,9 @@ if __name__ == '__main__':
         row += 1
         plt.show()
 
-    # NOISE DETECTION
+    # DATA EXPLORATION - Noise detection
+    # scans all images and classifies them in normal contrast images, complementary contrast images, and noisy/corrupted
+    # images
     data = pd.read_csv('dataset/labels_train.csv', sep=',')
 
     images_list = []
@@ -109,12 +130,12 @@ if __name__ == '__main__':
 
         val = filters.threshold_otsu(img)
         mask = (img > val) * 1.0
-        histBR, x = np.histogram(mask[230:256, 230:256], bins=2, range=(0, 1))
-        histTL, x = np.histogram(mask[0:25, 0:25], bins=2, range=(0, 1))
-        histTR, x = np.histogram(mask[0:25, 230:256], bins=2, range=(0, 1))
-        histBL, x = np.histogram(mask[230:256, 0:25], bins=2, range=(0, 1))
+        histBR, x1 = np.histogram(mask[230:256, 230:256], bins=2, range=(0, 1))
+        histTL, x2 = np.histogram(mask[0:25, 0:25], bins=2, range=(0, 1))
+        histTR, x3 = np.histogram(mask[0:25, 230:256], bins=2, range=(0, 1))
+        histBL, x4 = np.histogram(mask[230:256, 0:25], bins=2, range=(0, 1))
         hist = histTL+histTR+histBL+histBR
-        labels = l(mask)
+        labels = lfoo(mask)
 
         if len(np.unique(labels)) >= 100:
             count_noise += 1
@@ -124,7 +145,6 @@ if __name__ == '__main__':
             else:
                 count_inverted += 1
 
-    print('Normal images:\t', round(count_normal / len(images_list), 4)*100, '%')
-    print('Inverted images:\t', round(count_inverted / len(images_list), 4)*100, '%')
+    print('Normal contrast images:\t', round(count_normal / len(images_list), 4)*100, '%')
+    print('Complementary contrast images:\t', round(count_inverted / len(images_list), 4)*100, '%')
     print('Noisy/Corrupted images:\t', round(count_noise / len(images_list), 4)*100, '%')
-
