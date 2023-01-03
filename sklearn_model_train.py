@@ -11,6 +11,8 @@ from tqdm import tqdm
 from dataset_utils import make_list_of_patients, test_split, stratified_cross_validation_splits, dataframe2lists, \
     TUBERCULOSIS, invert_image
 
+# Trains a SVM
+
 patients = make_list_of_patients()
 
 patients_train, patients_test = test_split(data=patients)
