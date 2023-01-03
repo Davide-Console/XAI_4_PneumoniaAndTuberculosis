@@ -3,20 +3,25 @@ import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 from sklearn.metrics import classification_report
-from tensorflow.keras import backend as K
-from tensorflow.keras.callbacks import TensorBoard, ModelCheckpoint, CSVLogger
-from tensorflow.keras.losses import categorical_crossentropy
-from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.optimizers.schedules import PolynomialDecay
 from dataset_utils import *
 from tqdm import tqdm
-from architectures import *
 import execution_settings
 
 execution_settings.set_gpu()
 
 
 def evaluate(model, test_datagen, data_aug=False):
+    """
+    Evaluate the performance of a model on a test dataset.
+
+    Parameters:
+    model (keras.Model): The model to be evaluated.
+    test_datagen (keras.preprocessing.image.ImageDataGenerator): The test dataset.
+    data_aug (bool, optional): Whether to use data augmentation. Defaults to False.
+
+    Returns:
+    None: The function prints the classification report of the model.
+    """
     Y = []
     for j in range(test_datagen.__len__()):
         x, y = test_datagen.__getitem__(j)
