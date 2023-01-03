@@ -30,7 +30,7 @@ if __name__ == '__main__':
     dg_train_autoenc = DataGen(batch_size, (256, 256), x_train_fold0, y_train_fold0,
                                autoencoder='AE_model/0.0103f_model.h5')
     dg_train_pca = DataGen(batch_size_pca, (256, 256), x_train_fold0, y_train_fold0, pca_denoising=True)
-    dg_train_filt=DataGen(batch_size, (256, 256), x_train_fold0, y_train_fold0, filtering=True)
+    dg_train_filt = DataGen(batch_size, (256, 256), x_train_fold0, y_train_fold0, filtering=True)
 
     images_origin = []
     images_filtered = []
@@ -41,10 +41,10 @@ if __name__ == '__main__':
     images_batch_pca, labels = dg_train_pca.__getitem__(0)
     for index in image_indexes:
         image_raw = cv2.imread(img_path[k], 0)
-        image_raw= cv2.resize(image_raw, (256, 256), interpolation=cv2.INTER_CUBIC)
+        image_raw = cv2.resize(image_raw, (256, 256), interpolation=cv2.INTER_CUBIC)
         k = k + 1
         # Filter
-        img_filtered, lab= dg_train_filt.__getitem__(index)
+        img_filtered, lab = dg_train_filt.__getitem__(index)
 
         # Autoencoder
         img_auto, lbl1 = dg_train_autoenc.__getitem__(index)
@@ -61,26 +61,25 @@ if __name__ == '__main__':
     i = 0
     for img_origin, img_filt, img_autoenc, img_denoise_pca, label in zip(images_origin, images_filtered, images_autoenc,
                                                                          images_pca, lbls):
-
         image_filt = img_filt[0, :, :, 0]
         image_autoencoder = img_autoenc[0, :, :, 0]
         image_pca = img_denoise_pca[:, :, 0]
 
-        fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(10, 10),constrained_layout=True)
+        fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(10, 10), constrained_layout=True)
         fig.suptitle("Image: " + str(image_indexes[i]) + "\n Label: " + LABELS[np.argmax(label)])
-        axs[0,0].imshow(img_origin, cmap="gray")
-        axs[0,0].set_title("Original")
+        axs[0, 0].imshow(img_origin, cmap="gray")
+        axs[0, 0].set_title("Original")
 
-        axs[0,1].imshow(image_filt, cmap="gray")
-        axs[0,1].set_title("Median+Mean filter")
+        axs[0, 1].imshow(image_filt, cmap="gray")
+        axs[0, 1].set_title("Median+Mean filter")
 
-        axs[1,0].imshow(image_autoencoder, cmap="gray")
-        axs[1,0].set_title("Autoencoder")
+        axs[1, 0].imshow(image_autoencoder, cmap="gray")
+        axs[1, 0].set_title("Autoencoder")
 
-        axs[1,1].imshow(image_pca, cmap="gray")
-        axs[1,1].set_title("PCA reconstruction")
+        axs[1, 1].imshow(image_pca, cmap="gray")
+        axs[1, 1].set_title("PCA reconstruction")
 
-        name_fig="denoise_compare_img"+str(image_indexes[i])+".png"
+        name_fig = "chartsAndPlots/denoise_compare_img" + str(image_indexes[i]) + ".png"
         plt.savefig(name_fig)
         plt.show()
         i = i + 1

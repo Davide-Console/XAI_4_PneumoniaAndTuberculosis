@@ -39,6 +39,8 @@ def evaluate(model, test_datagen, data_aug=False):
 
 
 if __name__ == '__main__':
+    # Evaluate the model specified in the path.
+    # Please, set the preprocessing according to the ones used during training.
     model_path = 'explainedModels/fold4-0.9714-1.0000-f_model.h5'
     data_aug = False
     filtering = True

@@ -11,7 +11,7 @@ from tqdm import tqdm
 from dataset_utils import make_list_of_patients, test_split, stratified_cross_validation_splits, dataframe2lists, \
     TUBERCULOSIS, invert_image
 
-# Trains a SVM
+# Trains a SVM with 5-fold cross validation. Train, validation, and test sets are the same used for the DL models
 
 patients = make_list_of_patients()
 

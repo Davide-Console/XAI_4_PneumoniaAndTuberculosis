@@ -97,7 +97,6 @@ def get_autoencoder():
     # Declare the model
     autoencoder = Model(input_img, decoded)
 
-
     autoencoder.compile(optimizer='adam', loss='mse')
 
     return autoencoder
@@ -125,17 +124,17 @@ if __name__ == '__main__':
 
     dg_train0 = DG_autoencoder(batch_size, (256, 256), x_train_fold0, y_train_fold0)
     dg_val0 = DG_autoencoder(batch_size, (256, 256), x_val_fold0, y_val_fold0)
-    
+
     model = get_autoencoder()
     print(model.summary())
     callbacks = get_callbacks()
 
-    #Train the model
+    # Train the model
     model.fit(dg_train0,
-             epochs=500,
-             batch_size=batch_size,
-             shuffle=True,
-             validation_data=dg_val0,
-             callbacks=callbacks,
-             verbose=1
-             )
+              epochs=500,
+              batch_size=batch_size,
+              shuffle=True,
+              validation_data=dg_val0,
+              callbacks=callbacks,
+              verbose=1
+              )
