@@ -337,6 +337,8 @@ def variable_training(model, train_dataset, val_dataset, epochs: int, epoch_flag
 
 if __name__ == '__main__':
 
+    # Trains a deep learning model on the specified fold
+    fold = 4
     seed = 1
     classes = 3
     batch_size = 32
@@ -347,7 +349,6 @@ if __name__ == '__main__':
     X_train_folds, y_train_folds, X_val_folds, y_val_folds = stratified_cross_validation_splits(data=patients_train)
     X_test, y_test = dataframe2lists(patients_test)
 
-    fold = 4
     x_train_fold0 = X_train_folds[fold]
     y_train_fold0 = y_train_folds[fold]
 
