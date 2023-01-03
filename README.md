@@ -17,10 +17,10 @@ AAIB_Assignment2022   # your WRK_DIR
 ├── AE_model
     ├── 0.0103f_model.h5
 ├── explainedModels
-├── XAI_outputs
+├── ChartsAndPlots
 ├── .py scripts
 ├── train_set.zip
-└── .py files
+└── .py scripts
 ```
 
 The project has been tested with tensorflow 2.4.1

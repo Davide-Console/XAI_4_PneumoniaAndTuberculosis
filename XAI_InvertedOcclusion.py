@@ -94,13 +94,13 @@ def get_occluded_probabilities(img, predictor, index, patch_size=16, stride=1, s
 
 if __name__ == '__main__':
     # Apply Inverted Occlusion technique over some test images
-    image_indexes = [31, 30, 99]  # N, P, T
+    image_indexes = [4, 30, 99]  # N, P, T
     model_path = 'explainedModels/fold1-0.9776-1.0000-f_model.h5'
     pickle_model_path = 'explainedModels/svm.pkl'
     patch = 64
-    stride = 16
+    stride = 16  # 64 for EffNet
     filtered_input = True
-    pickle_model = True
+    pickle_model = False
     invert_black_bg = True
 
     if not pickle_model:

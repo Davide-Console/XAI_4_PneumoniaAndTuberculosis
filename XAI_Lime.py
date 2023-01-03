@@ -98,11 +98,11 @@ def explanation_heatmap(lime_exp, exp_class):
 
 if __name__ == '__main__':
     # Apply Lime technique over some test images
-    image_indexes = [31, 30, 99]  # N, P, T
+    image_indexes = [4, 30, 99]  # N, P, T
     model_path = 'explainedModels/fold1-0.9776-1.0000-f_model.h5'
     pickle_model_path = 'explainedModels/svm.pkl'
     filtered_input = True
-    pickle_model = True
+    pickle_model = False
     invert_black_bg = True
 
     pred2explain = 0  # index of the label to be analyzed. 0 means the label with higher probability

@@ -29,6 +29,7 @@ def display_gradcam(img, heatmap, emphasize=False, thresh=None):
     Returns:
     PIL.Image.Image: The image with the heatmap visualized.
     """
+
     def sigmoid(x, a, b, c):
         """
         Evaluate a sigmoid function at given input.
@@ -142,7 +143,7 @@ def GradCam(model, img_array, label, layer_name, eps=1e-8):
 if __name__ == '__main__':
 
     # Apply GradCam technique over some test images
-    image_indexes = [31, 30, 99]  # N, P, T
+    image_indexes = [4, 30, 99]  # N, P, T
     model_path = 'explainedModels/fold1-0.9776-1.0000-f_model.h5'
     filtered_input = True
     invert_black_bg = True
@@ -177,7 +178,7 @@ if __name__ == '__main__':
         title = "True: " + LABELS[np.argmax(label)] + " - Predicted: " + LABELS[np.argmax(pred)]
         subfig.suptitle(title)
         axs = subfig.subplots(nrows=1, ncols=2)
-        axs[0].imshow(image[0, :, :, :]/255)
+        axs[0].imshow(image[0, :, :, :] / 255)
         axs[0].axis('off')
         axs[1].imshow(result)
         axs[1].axis('off')

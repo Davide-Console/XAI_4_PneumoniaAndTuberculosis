@@ -11,7 +11,7 @@ from dataset_utils import make_list_of_patients, test_split, dataframe2lists, in
 
 # Evaluates SVM model and prints the classification report
 
-model = pickle.load(open('float_model/fold3-svm.pkl', 'rb'))
+model = pickle.load(open('explainedModels/fold4-svm.pkl', 'rb'))
 
 patients = make_list_of_patients()
 patients_train, patients_test = test_split(data=patients)
