@@ -2,11 +2,10 @@ import os
 import tempfile
 
 import matplotlib.pyplot as plt
-import tensorflow as tf
 import visualkeras
 from tensorflow import keras
 from tensorflow.keras import regularizers
-from tensorflow.keras.applications import EfficientNetB3, EfficientNetB0
+from tensorflow.keras.applications import EfficientNetB3
 from tensorflow.keras.applications.efficientnet import preprocess_input
 from tensorflow.keras.layers import Dense, GlobalAvgPool2D
 from tensorflow.keras.layers import Input, Dropout
@@ -118,6 +117,7 @@ def get_EfficientNetB3(weights=None, input_shape=(256, 256, 1), classes=8, regul
 
 
 if __name__ == '__main__':
+    # prints and plots EfficientNetB3 architecture
     net = get_EfficientNetB3(classes=3, weights="imagenet")
 
     print(net.summary())
