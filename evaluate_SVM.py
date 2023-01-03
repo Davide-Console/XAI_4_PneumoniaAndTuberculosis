@@ -9,6 +9,8 @@ from tqdm import tqdm
 
 from dataset_utils import make_list_of_patients, test_split, dataframe2lists, invert_image
 
+# Evaluates SVM model and prints the classification report
+
 model = pickle.load(open('float_model/fold1-svm.pkl', 'rb'))
 
 patients = make_list_of_patients()
