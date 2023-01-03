@@ -118,7 +118,7 @@ def get_EfficientNetB3(weights=None, input_shape=(256, 256, 1), classes=8, regul
 
 
 if __name__ == '__main__':
-    net = get_EfficientNetB3(classes=3)
+    net = get_EfficientNetB3(classes=3, weights="imagenet")
 
     print(net.summary())
 

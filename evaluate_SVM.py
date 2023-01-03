@@ -9,7 +9,7 @@ from tqdm import tqdm
 
 from dataset_utils import make_list_of_patients, test_split, dataframe2lists, invert_image
 
-model = pickle.load(open('explainedModels/svm.pkl', 'rb'))
+model = pickle.load(open('float_model/fold1-svm.pkl', 'rb'))
 
 patients = make_list_of_patients()
 patients_train, patients_test = test_split(data=patients)

@@ -34,9 +34,11 @@ def evaluate(model, test_datagen, data_aug=False):
 
 
 if __name__ == '__main__':
-    model_path = 'explainedModels/fold3-0.9742-0.9997-f_model.h5'
+    model_path = 'explainedModels/fold4-0.9714-1.0000-f_model.h5'
     data_aug = False
     filtering = True
+    invert_black_bg = True
+
     weights = "imagenet"
     model = tf.keras.models.load_model(model_path)
 
@@ -44,6 +46,7 @@ if __name__ == '__main__':
     patients_train, patients_test = test_split(data=patients)
     X_test, y_test = dataframe2lists(patients_test)
 
-    dg_test = DataGen(32, (256, 256), X_test, y_test, weights=weights, filtering=filtering, data_aug=data_aug, invert_black_bg=True)
+    dg_test = DataGen(32, (256, 256), X_test, y_test, weights=weights, filtering=filtering,
+                      data_aug=data_aug, invert_black_bg=invert_black_bg)
 
     evaluate(model, dg_test, data_aug=data_aug)
