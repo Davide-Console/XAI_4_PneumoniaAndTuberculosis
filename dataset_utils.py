@@ -13,9 +13,6 @@ from skimage.measure import label as label_fn
 from scipy import ndimage
 import tensorflow as tf
 
-PATH_NORMAL = 'dataset/normal'
-PATH_PNEUMONIA = 'dataset/pneumonia'
-PATH_TUBERCULOSIS = 'dataset/tuberculosis'
 
 NORMAL = 0
 PNEUMONIA = 1
@@ -23,6 +20,28 @@ TUBERCULOSIS = 2
 
 
 def invert_image(img):
+    """
+        Invert the image if the number of unique labels in the image is less than 100 and the number of white pixels is
+        greater than the number of black pixels in the ROI.
+
+        The function first calculates a threshold value using Otsu's method and creates a binary mask of the image. It then
+        counts the number of white pixels in the mask in the top left, top right, bottom left, and bottom right quadrants.
+        The function also calculates the number of unique labels in the image using the 'label_fn()' function. If the
+        number of unique labels is less than 100 and the number of white pixels is greater than the number of black pixels,
+        the function returns the inverted image, otherwise it returns the original image.
+
+        Parameters
+        ----------
+        img : numpy array
+            A 2D image array.
+
+        Returns
+        -------
+        img : numpy array
+            The original image if the number of unique labels is greater than or equal to 100 or the number of black pixels
+            is greater than the number of white pixels, or the inverted image if the number of unique labels is less than
+            100 and the number of white pixels is greater than the number of black pixels.
+        """
     val = filters.threshold_otsu(img)
     mask = (img > val) * 1.0
     histBR, x = np.histogram(mask[230:256, 230:256], bins=2, range=(0, 1))
@@ -41,7 +60,36 @@ def invert_image(img):
 
 
 class DataGen(keras.utils.Sequence):
+    """
+     A data generator that yields batches of images and labels.
 
+     The generator reads the images and labels from the file paths and performs optional filtering, data augmentation,
+     and denoising using an autoencoder or PCA. If the 'imagenet' weights are used, the images are also converted to
+     RGB.
+
+     Parameters
+     ----------
+     batch_size : int
+         The number of images in each batch.
+     img_size : tuple
+         The size to which the images should be resized.
+     input_paths : list
+         A list of file paths to the input images.
+     target : list
+         A list of labels corresponding to the input images.
+     weights : str, optional
+         The weights to use for the images. If 'imagenet', the images are converted to RGB.
+     filtering : bool, optional
+        Whether to apply median and mean filtering to the images.
+    data_aug : bool, optional
+        Whether to apply random rotation and flipping to the images.
+    autoencoder : str, optional
+        The file path to an autoencoder model to use for denoising the images.
+    invert_black_bg : bool, optional
+        Whether to invert the images if they have a black background and less than 100 unique labels.
+    pca_denoising : bool, optional
+        Whether to denoise the images using PCA.
+    """
     def __init__(self, batch_size, img_size, input_paths, target, weights=None, filtering=False, data_aug=False,
                  autoencoder=None, invert_black_bg=False, pca_denoising=False):
         self.batch_size = batch_size
@@ -122,7 +170,19 @@ class DataGen(keras.utils.Sequence):
 
 def noise(array, type='gaussian'):
     """
-    Adds random noise to each image in the supplied array.
+    Add noise to an array.
+
+    Parameters
+    ----------
+    array : numpy array
+        The array to which noise should be added.
+    type : str, optional
+        The type of noise to add. Supported types are 'gaussian' and 'uniform'.
+
+    Returns
+    -------
+    noisy_array : numpy array
+        The array with added noise.
     """
     if type == 'gaussian':
         np.random.seed(1)
@@ -137,7 +197,22 @@ def noise(array, type='gaussian'):
 
 
 class DG_autoencoder(keras.utils.Sequence):
+    """
+    A data generator that yields batches of noisy and clean images for training an autoencoder.
 
+    The generator reads the images from the file paths and adds uniform noise to them.
+
+    Parameters
+    ----------
+    batch_size : int
+        The number of images in each batch.
+    img_size : tuple
+        The size to which the images should be resized.
+    input_paths : list
+        A list of file paths to the input images.
+    target : list
+        A list of labels corresponding to the input images.
+    """
     def __init__(self, batch_size, img_size, input_paths, target):
         self.batch_size = batch_size
         self.img_size = img_size  # (400, 400)
@@ -167,6 +242,20 @@ class DG_autoencoder(keras.utils.Sequence):
 
 
 def make_list_of_patients():
+    """
+    Read the labels from the 'labels_train.csv' file and create a data frame of patients with lists of file paths and
+    labels.
+
+    The function reads the 'labels_train.csv' file and creates a data frame with columns 'ID', 'paths', and 'label'.
+    Each row in the data frame represents a patient and contains the patient's ID, a list of file paths to the
+    patient's images, and the patient's label. If two samples have the same ID, the function checks that they have the
+    same label.
+
+    Returns
+    -------
+    patients : pandas DataFrame
+        A data frame of patients with lists of file paths and labels.
+    """
     data = pd.read_csv('dataset/labels_train.csv', sep=',')
 
     patients = pd.DataFrame(columns=['ID', 'paths', 'label'])
@@ -193,6 +282,31 @@ def make_list_of_patients():
 
 
 def get_images(indexes, filtered=False, input_channels=1, invert_black_bg=True):
+    """
+    Get a list of images and labels from a data generator.
+
+    The function creates a data generator using the 'DataGen' class and returns a list of images and labels for the
+    given indexes. The data generator uses the test split of the data frame created by the 'make_list_of_patients'
+    function.
+
+    Parameters
+    ----------
+    indexes : list
+        A list of indexes for the images to get from the data generator.
+    filtered : bool, optional
+        Whether to apply median and mean filtering to the images.
+    input_channels : int, optional
+        The number of channels in the input images. Supported values are 1 and 3.
+    invert_black_bg : bool, optional
+        Whether to invert the images if they have a black background and less than 100 unique labels.
+
+    Returns
+    -------
+    imgs : list
+        A list of images.
+    lbls : list
+        A list of labels corresponding to the images.
+    """
     patients = make_list_of_patients()
     patients_train, patients_test = test_split(data=patients)
     X_test, y_test = dataframe2lists(patients_test)
@@ -218,16 +332,56 @@ def get_images(indexes, filtered=False, input_channels=1, invert_black_bg=True):
 
 
 def test_split(data: pd.DataFrame, test_size=0.15, shuffle=True, random_state=8432):
+    """
+    Split the data into training and test sets.
+
+    The function uses the 'train_test_split' function from scikit-learn to split the data into training and test sets.
+    The function also shuffles the data and stratifies it by the labels.
+
+    Parameters
+    ----------
+    data : pandas DataFrame
+        The data to split.
+    test_size : float, optional
+        The proportion of the data to include in the test set.
+    shuffle : bool, optional
+        Whether to shuffle the data before splitting it.
+    random_state : int, optional
+        The seed used by the random number generator.
+
+    Returns
+    -------
+    patients_train : pandas DataFrame
+        The training set.
+    patients_test : pandas DataFrame
+        The test set.
+    """
     patients_train, patients_test = train_test_split(data,
                                                      stratify=data.iloc[:, -1].values,
                                                      test_size=test_size,
                                                      shuffle=shuffle,
                                                      random_state=random_state)
-
     return patients_train, patients_test
 
 
 def dataframe2lists(data: pd.DataFrame):
+    """
+    Convert data from a pandas DataFrame to lists.
+
+    The function converts the 'ID', 'paths', and 'label' columns of the input DataFrame into separate lists.
+
+    Parameters
+    ----------
+    data : pandas DataFrame
+        The DataFrame to convert.
+
+    Returns
+    -------
+    X : list
+        A list of 'paths' values.
+    y : list
+        A list of 'label' values.
+    """
     X = []
     y = []
 
@@ -244,6 +398,21 @@ def dataframe2lists(data: pd.DataFrame):
 
 
 def stratified_cross_validation_splits(data: pd.DataFrame, fold=5, shuffle=True, random_state=8432):
+    """
+    Return stratified cross-validation folds for the input data.
+
+    Parameters:
+    data (pandas.DataFrame): Input data.
+    fold (int): Number of folds.
+    shuffle (bool): Whether to shuffle the data before dividing into folds.
+    random_state (int): Seed for shuffling.
+
+    Returns:
+    X_train_folds (list): List of training data split into folds.
+    y_train_folds (list): List of training labels split into folds.
+    X_test_folds (list): List of test data split into folds.
+    y_test_folds (list): List of test labels split into folds.
+    """
     X = data.iloc[:, :-1].values
     y = data.iloc[:, -1].values
 
@@ -285,14 +454,3 @@ def stratified_cross_validation_splits(data: pd.DataFrame, fold=5, shuffle=True,
 
     return X_train_folds, y_train_folds, X_test_folds, y_test_folds
 
-
-if __name__ == '__main__':
-    index_image = [1]  # 1 -> Uniform, 12 -> Salt&Pepper, 18 -> Blurred, 19 -> Inverted, 124 -> Burned
-
-    image1, label1 = get_images(index_image)
-
-    for img, label in zip(image1, label1):
-        img1 = img[0, :, :, 0]
-        plt.imshow(img1 / 255, cmap='gray')
-        plt.title("median+mean filter")
-        plt.show()
