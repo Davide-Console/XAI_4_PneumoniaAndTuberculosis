@@ -71,18 +71,18 @@ if __name__ == '__main__':
         roi = image[start_pointy:end_pointy, start_pointx:end_pointx]
         image_rect = cv2.rectangle(image, (start_pointx, start_pointy), (end_pointx, end_pointy), 2)
 
-        plt.subplot(1, 3, 1)
+        plt.subplot(2, 2, 1)
         plt.imshow(image_rect, cmap='gray')
         plt.axis('off')
         plt.title('Image')
 
-        plt.subplot(1, 3, 2)
+        plt.subplot(2, 2, 3)
         plt.imshow(roi / 255, cmap='gray')
         titleroi = "Selected ROI"
         plt.axis('off')
         plt.title(titleroi)
 
-        plt.subplot(3, 3, 6)
+        plt.subplot(1, 2, 2)
         plt.hist(roi.ravel(), 256, [0, 256])
         plt.ylim([0, 50])
         title = "ROI histogram"
