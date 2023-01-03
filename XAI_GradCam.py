@@ -1,17 +1,11 @@
-# @title Implementation
 import os
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 import execution_settings
 
-import cv2
-import matplotlib.pyplot as plt
 import matplotlib.cm as cm
-import tensorflow as tf
 from tensorflow.keras.models import Model
-import numpy as np
-from tensorflow.python.keras.optimizer_v1 import Adam
 
 from dataset_utils import *
 
@@ -21,7 +15,37 @@ LABELS = ["NORMAL", "PNEUMONIA", "TUBERCULOSIS"]
 
 
 def display_gradcam(img, heatmap, emphasize=False, thresh=None):
+    """
+    Visualize a heatmap on an image.
+
+    This function overlays a heatmap on an image and returns the resulting image. The heatmap is first rescaled to a range of 0-255 and then colorized using the jet colormap. The heatmap is then superimposed on the original image, with an optional emphasis on high values of the heatmap using a sigmoid function.
+
+    Parameters:
+    img (numpy.ndarray): The image to display the heatmap on.
+    heatmap (numpy.ndarray): The heatmap to be visualized.
+    emphasize (bool, optional): Whether to emphasize high values of the heatmap. Defaults to False.
+    thresh (float, optional): The threshold for the sigmoid function. Required if emphasize is True.
+
+    Returns:
+    PIL.Image.Image: The image with the heatmap visualized.
+    """
     def sigmoid(x, a, b, c):
+        """
+        Evaluate a sigmoid function at given input.
+
+        This function calculates the output of a sigmoid function at a given input value. The sigmoid function has the following form:
+
+        f(x) = c / (1 + exp(-a * (x - b)))
+
+        Parameters:
+        x (float): The input value to the sigmoid function.
+        a (float): The coefficient of the linear term.
+        b (float): The offset of the linear term.
+        c (float): The maximum output value of the sigmoid function.
+
+        Returns:
+        float: The output value of the sigmoid function.
+        """
         return c / (1 + np.exp(-a * (x - b)))
 
     # Rescale heatmap to a range 0-255
@@ -116,6 +140,8 @@ def GradCam(model, img_array, label, layer_name, eps=1e-8):
 
 
 if __name__ == '__main__':
+
+    # Apply GradCam technique over some test images
     image_indexes = [31, 30, 99]  # N, P, T
     model_path = 'explainedModels/fold1-0.9776-1.0000-f_model.h5'
     filtered_input = True

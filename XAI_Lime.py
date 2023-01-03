@@ -10,7 +10,7 @@ import numpy as np
 from lime import lime_image
 import tensorflow as tf
 from skimage.segmentation import mark_boundaries
-from dataset_utils import make_list_of_patients, stratified_cross_validation_splits, DataGen, get_images
+from dataset_utils import get_images
 
 execution_settings.set_gpu()
 
@@ -18,18 +18,43 @@ LABELS = ["NORMAL", "PNEUMONIA", "TUBERCULOSIS"]
 
 
 def predict4lime(img2):
-    # print(img2.shape)
+    """
+    predict4lime: Use a trained model to make predictions for an image
+
+    Parameters:
+        img2: the image to make predictions for
+
+    Returns:
+        the predicted class for the image
+    """
     return model.predict(img2[:, :, :, 0] * 255)  # the explain_instance function calls skimage.color.rgb2gray. So I
     # need to take only yhe first channel to make the prediction
 
 
 def predict4limeRGB(img2):
-    # print(img2.shape)
+    """
+    predict4limeRGB: Use a trained model to make predictions for a color image
+
+    Parameters:
+        img2: the image to make predictions for
+
+    Returns:
+        the predicted class for the image
+    """
     return model.predict(img2[:, :, :, :] * 255)  # the explain_instance function calls skimage.color.rgb2gray. So I
     # need to take only yhe first channel to make the prediction
 
 
 def predict4limeSVM(img2):
+    """
+    predict4limeSVM: Use a trained SVM model to make predictions for a list of images
+
+    Parameters:
+        img2: the list of images to make predictions for
+
+    Returns:
+        y_pred: the predicted class probabilities for each image
+    """
     ex_img = img2[0, :, :, 0]
     orientations = 18
     pixels_per_cell = (16, 16)
@@ -72,6 +97,7 @@ def explanation_heatmap(lime_exp, exp_class):
 
 
 if __name__ == '__main__':
+    # Apply Lime technique over some test images
     image_indexes = [31, 30, 99]  # N, P, T
     model_path = 'explainedModels/fold1-0.9776-1.0000-f_model.h5'
     pickle_model_path = 'explainedModels/svm.pkl'

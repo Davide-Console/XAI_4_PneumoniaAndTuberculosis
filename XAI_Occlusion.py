@@ -18,6 +18,16 @@ LABELS = ["NORMAL", "PNEUMONIA", "TUBERCULOSIS"]
 
 
 def sklearn_predictions(predictor, occluded_imgs):
+    """
+    sklearn_predictions: Use a trained sklearn predictor to predict probabilities for occluded images
+
+    Parameters:
+        predictor: a trained sklearn classifier
+        occluded_imgs: a list of occluded images to predict on
+
+    Returns:
+        y_pred: the predicted probabilities for each image
+    """
     ex_img = occluded_imgs[0]
     ex_img = ex_img[:, :, 0]
     orientations = 18
@@ -82,6 +92,7 @@ def get_occluded_probabilities(img, predictor, index, patch_size=16, stride=1, s
 
 
 if __name__ == '__main__':
+    # Apply Occlusion technique over some test images
     image_indexes = [31, 30, 99]  # N, P, T
     model_path = 'explainedModels/fold1-0.9776-1.0000-f_model.h5'
     pickle_model_path = 'explainedModels/svm.pkl'
