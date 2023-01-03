@@ -35,7 +35,6 @@ python dataset_preparation.py
 To visualize some dataset information:
 ```console
 python data_exploration.py
-python noise_detection.py
 ```
 
 
