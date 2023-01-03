@@ -1,27 +1,6 @@
+import os
 import shutil
 import zipfile
-import tensorflow as tf
-import pandas as pd
-import os
-import cv2
-
-PATH_NORMAL = 'dataset/normal'
-PATH_TUBERCULOSIS = 'dataset/tuberculosis'
-PATH_PNEUMONIA = 'dataset/pneumonia'
-
-
-def prepare_folders():
-    data = pd.read_csv('dataset/labels_train.csv', sep=',')
-
-    PATHS = [PATH_PNEUMONIA, PATH_TUBERCULOSIS, PATH_NORMAL]
-    labels = ['P', 'T', 'N']
-
-    for path in PATHS:
-        shutil.rmtree(path, ignore_errors=True)
-        os.makedirs(path)
-
-    for _, row in data.iterrows():
-        shutil.move('dataset/' + row['file'], PATHS[labels.index(row['label'])])
 
 
 def extract_dataset(zipped_dataset, output_directory):
@@ -47,4 +26,3 @@ def extract_dataset(zipped_dataset, output_directory):
 
 if __name__ == '__main__':
     extract_dataset('train_set.zip', 'dataset/')
-    # prepare_folders()
