@@ -72,7 +72,7 @@ for fold in range(folds):
         cl_w.update({c: 1})
 
     cl_w.update({TUBERCULOSIS: 19})
-    clf = SVC(class_weight=cl_w, probability=True)
+    clf = SVC(class_weight=cl_w, probability=True, C=0.7)
 
     y = np.asarray(y_train_fold)
     clf.fit(X, y)

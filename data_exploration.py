@@ -64,12 +64,13 @@ if __name__ == '__main__':
 
     row = 0
     for image, label in zip(images, labels):
-        plt.suptitle('Data Exploration for image n.' + str(image_indexes[row]) + '\nLabel: ' + LABELS[np.argmax(label)] )
+        plt.suptitle('Data Exploration for image n.' + str(image_indexes[row]) + '\nLabel: ' + LABELS[np.argmax(label)])
         image = image[0, :, :, 0]
 
         label = label[0]
         roi = image[start_pointy:end_pointy, start_pointx:end_pointx]
-        image_rect = cv2.rectangle(image, (start_pointx, start_pointy), (end_pointx, end_pointy), 2)
+        image_rect = cv2.rectangle(gray2rgb(image)/255, (start_pointx, start_pointy), (end_pointx, end_pointy), (255, 0, 0), 2)
+
 
         plt.subplot(2, 2, 1)
         plt.imshow(image_rect, cmap='gray')

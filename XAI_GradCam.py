@@ -116,9 +116,11 @@ def GradCam(model, img_array, label, layer_name, eps=1e-8):
 
 
 if __name__ == '__main__':
-    image_indexes = [31, 39, 99]  # N, P, T
-    model_path = 'explainedModels/fold0-0.9722-0.9999-f_model.h5'
-    filtered_input = True  # If DataGenFiltered is used during train set this to true
+    image_indexes = [31, 30, 99]  # N, P, T
+    model_path = 'explainedModels/fold1-0.9776-1.0000-f_model.h5'
+    filtered_input = True
+    invert_black_bg = True
+
     model = tf.keras.models.load_model(model_path)
     input_channels = model.layers[0].input_shape[0][-1]
 
@@ -126,7 +128,8 @@ if __name__ == '__main__':
                   loss=keras.losses.categorical_crossentropy,
                   metrics='accuracy')
 
-    images, labels = get_images(image_indexes, filtered=filtered_input, input_channels=input_channels)
+    images, labels = get_images(image_indexes, filtered=filtered_input, input_channels=input_channels,
+                                invert_black_bg=invert_black_bg)
 
     fig, axs = plt.subplots(nrows=len(image_indexes), ncols=1, constrained_layout=True)
     fig.suptitle('GradCam Explainer - EfficientNetB3')

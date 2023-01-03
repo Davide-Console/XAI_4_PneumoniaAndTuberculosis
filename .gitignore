@@ -16,6 +16,7 @@ GPU_MEMORY.py
 *.h5
 !AE_model/0.0103f_model.h5
 tests.py
+!XAI_outputs/*.png
 
 # C extensions
 *.so
