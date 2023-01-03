@@ -1,10 +1,13 @@
-import matplotlib.pyplot as plt
-
 from dataset_utils import *
-import cv2
 
 LABELS = ["NORMAL", "PNEUMONIA", "TUBERCULOSIS"]
+
 if __name__ == '__main__':
+    # Plots a visual comparison of noisy image with the processed images using different methods:
+    # median+mean filtering
+    # PCA
+    # Denoising Autoencoder
+
     seed = 1
     classes = 3
     batch_size = 1
@@ -58,12 +61,11 @@ if __name__ == '__main__':
     i = 0
     for img_origin, img_filt, img_autoenc, img_denoise_pca, label in zip(images_origin, images_filtered, images_autoenc,
                                                                          images_pca, lbls):
-        # image_original = img_origin[0, :, :, 0]
+
         image_filt = img_filt[0, :, :, 0]
         image_autoencoder = img_autoenc[0, :, :, 0]
         image_pca = img_denoise_pca[:, :, 0]
 
-        #plt.figure(figsize=(6, 4))
         fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(10, 10),constrained_layout=True)
         fig.suptitle("Image: " + str(image_indexes[i]) + "\n Label: " + LABELS[np.argmax(label)])
         axs[0,0].imshow(img_origin, cmap="gray")
