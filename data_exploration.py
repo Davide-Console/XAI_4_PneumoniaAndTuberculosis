@@ -36,6 +36,7 @@ def get_x(datagen):
 
 if __name__ == '__main__':
     # plots train-val-test sets distribution and the histograms of ROIs of some sample images
+    # prints noise distribution
 
     seed = 1
     classes = 3
@@ -159,3 +160,9 @@ if __name__ == '__main__':
     print('Normal contrast images:\t', round(count_normal / len(images_list), 4) * 100, '%')
     print('Complementary contrast images:\t', round(count_inverted / len(images_list), 4) * 100, '%')
     print('Noisy/Corrupted images:\t', round(count_noise / len(images_list), 4) * 100, '%')
+
+    noise_labels = ['Normal Contrast', 'Complementary Contrast', 'Noisy/Corrupted']
+    data = [round(count_normal / len(images_list), 4), round(count_inverted / len(images_list), 4), round(count_noise / len(images_list), 4)]
+    plt.pie(data, labels=noise_labels)
+    plt.title('Distribution of normal, inverted contrast, and noisy or corrupted images')
+    plt.show()
