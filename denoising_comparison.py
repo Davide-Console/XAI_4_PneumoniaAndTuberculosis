@@ -4,7 +4,7 @@ LABELS = ["NORMAL", "PNEUMONIA", "TUBERCULOSIS"]
 
 if __name__ == '__main__':
     # Plots a visual comparison of noisy image with the processed images using different methods:
-    # median+mean filtering
+    # median+uniform filtering
     # PCA
     # Denoising Autoencoder
 

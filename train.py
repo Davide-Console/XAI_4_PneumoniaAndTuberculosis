@@ -131,7 +131,7 @@ def update_weights(scores, labels, power=1, offset=1):
         The higher the f1-score, the lower the weight.
         The lower the f1-score, the higher the weight.
         The weights are calculated using the following formula:
-            weight = 1 + (1 - f1**power / (np.max(f1s)**power + np.finfo(float).eps))
+            weight = 1 + (offset - offset * (f1**power / (np.max(f1s)**power + np.finfo(float).eps)))
         The power is a hyperparameter that can be tuned.
         The offset set the range of values. The weights can go from 1 to offset+1
         The default value is 2.
