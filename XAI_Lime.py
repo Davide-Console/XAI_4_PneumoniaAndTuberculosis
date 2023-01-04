@@ -100,7 +100,7 @@ if __name__ == '__main__':
     # Apply Lime technique over some test images
     image_indexes = [4, 30, 99]  # N, P, T
     model_path = 'explainedModels/fold1-0.9776-1.0000-f_model.h5'
-    pickle_model_path = 'explainedModels/svm.pkl'
+    pickle_model_path = 'explainedModels/fold1-svm.pkl'
     filtered_input = True
     pickle_model = False
     invert_black_bg = True

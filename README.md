@@ -75,6 +75,8 @@ python sklearn_model_train.py
 
 ## Testing
 
+5-fold trained model are available at the following [link](https://polimi365-my.sharepoint.com/:f:/g/personal/10607946_polimi_it/EkwXt8GfN_hNgNUZUMXnmnQBX4CMFNB0USq_-yqtWzkBsg?e=3ioSo7). 
+
 To evaluate results:
   ```console
 python evaluate.py

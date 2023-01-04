@@ -96,7 +96,7 @@ if __name__ == '__main__':
     # Apply Inverted Occlusion technique over some test images
     image_indexes = [4, 30, 99]  # N, P, T
     model_path = 'explainedModels/fold1-0.9776-1.0000-f_model.h5'
-    pickle_model_path = 'explainedModels/svm.pkl'
+    pickle_model_path = 'explainedModels/fold1-svm.pkl'
     patch = 64
     stride = 16  # 64 for EffNet
     filtered_input = True
