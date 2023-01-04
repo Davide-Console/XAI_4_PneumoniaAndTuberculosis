@@ -119,7 +119,7 @@ if __name__ == '__main__':
         input_channels = 1
 
     images, labels = get_images(image_indexes, filtered=filtered_input, input_channels=input_channels,
-                                invert_black_bg=invert_black_bg)
+                                invert_black_bg=invert_black_bg, labels='any')
 
     fig, axs = plt.subplots(nrows=len(image_indexes), ncols=1, constrained_layout=True)
     title = 'Lime Explainer'
@@ -186,6 +186,7 @@ if __name__ == '__main__':
                                                   hide_background=False, weight=min_weight)
         axs[2].imshow(masked_image)
         axs[2].axis('off')
+
         row += 1
 
     plt.show()

@@ -1,5 +1,7 @@
 import os
 
+import matplotlib.pyplot as plt
+
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 import execution_settings
@@ -156,7 +158,7 @@ if __name__ == '__main__':
                   metrics='accuracy')
 
     images, labels = get_images(image_indexes, filtered=filtered_input, input_channels=input_channels,
-                                invert_black_bg=invert_black_bg)
+                                invert_black_bg=invert_black_bg, labels='any')
 
     fig, axs = plt.subplots(nrows=len(image_indexes), ncols=1, constrained_layout=True)
     fig.suptitle('GradCam Explainer - EfficientNetB3')

@@ -13,10 +13,10 @@ from skimage.measure import label as label_fn
 from scipy import ndimage
 import tensorflow as tf
 
-
 NORMAL = 0
 PNEUMONIA = 1
 TUBERCULOSIS = 2
+LABELS = ["NORMAL", "PNEUMONIA", "TUBERCULOSIS"]
 
 
 def invert_image(img):
@@ -90,6 +90,7 @@ class DataGen(keras.utils.Sequence):
     pca_denoising : bool, optional
         Whether to denoise the images using PCA.
     """
+
     def __init__(self, batch_size, img_size, input_paths, target, weights=None, filtering=False, data_aug=False,
                  autoencoder=None, invert_black_bg=False, pca_denoising=False):
         self.batch_size = batch_size
@@ -213,6 +214,7 @@ class DG_autoencoder(keras.utils.Sequence):
     target : list
         A list of labels corresponding to the input images.
     """
+
     def __init__(self, batch_size, img_size, input_paths, target):
         self.batch_size = batch_size
         self.img_size = img_size  # (400, 400)
@@ -281,7 +283,7 @@ def make_list_of_patients():
     return patients
 
 
-def get_images(indexes, filtered=False, input_channels=1, invert_black_bg=True):
+def get_images(indexes, filtered=False, input_channels=1, invert_black_bg=True, labels='any'):
     """
     Get a list of images and labels from a data generator.
 
@@ -299,6 +301,8 @@ def get_images(indexes, filtered=False, input_channels=1, invert_black_bg=True):
         The number of channels in the input images. Supported values are 1 and 3.
     invert_black_bg : bool, optional
         Whether to invert the images if they have a black background and less than 100 unique labels.
+    labels: string, optional
+        which class to be returned. Default is 'any'. Can be 'NORMAL', 'PNEUMONIA', or 'TUBERCULOSIS'
 
     Returns
     -------
@@ -307,6 +311,8 @@ def get_images(indexes, filtered=False, input_channels=1, invert_black_bg=True):
     lbls : list
         A list of labels corresponding to the images.
     """
+    assert labels == 'any' or labels == 'NORMAL' or labels == 'PNEUMONIA' or labels == 'TUBERCULOSIS'
+
     patients = make_list_of_patients()
     patients_train, patients_test = test_split(data=patients)
     X_test, y_test = dataframe2lists(patients_test)
@@ -319,14 +325,20 @@ def get_images(indexes, filtered=False, input_channels=1, invert_black_bg=True):
     else:
         raise ValueError
 
-    dg_val0 = DataGen(batch_size, (256, 256), X_test, y_test, weights=weights, filtering=filtered, invert_black_bg=invert_black_bg)
+    dg_val0 = DataGen(batch_size, (256, 256), X_test, y_test, weights=weights, filtering=filtered,
+                      invert_black_bg=invert_black_bg)
 
     imgs = []
     lbls = []
     for index in indexes:
         img, lbl = dg_val0.__getitem__(index)
-        imgs.append(img)
-        lbls.append(lbl)
+        if labels == 'any':
+            imgs.append(img)
+            lbls.append(lbl)
+        else:
+            if LABELS[np.argmax(lbl)] == labels:
+                imgs.append(img)
+                lbls.append(lbl)
 
     return imgs, lbls
 
@@ -453,4 +465,3 @@ def stratified_cross_validation_splits(data: pd.DataFrame, fold=5, shuffle=True,
         y_test_folds.append(y_test)
 
     return X_train_folds, y_train_folds, X_test_folds, y_test_folds
-
