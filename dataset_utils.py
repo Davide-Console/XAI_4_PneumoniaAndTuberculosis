@@ -80,7 +80,7 @@ class DataGen(keras.utils.Sequence):
      weights : str, optional
          The weights to use for the images. If 'imagenet', the images are converted to RGB.
      filtering : bool, optional
-        Whether to apply median and mean filtering to the images.
+        Whether to apply median and uniform filtering to the images.
     data_aug : bool, optional
         Whether to apply random rotation and flipping to the images.
     autoencoder : str, optional
@@ -296,7 +296,7 @@ def get_images(indexes, filtered=False, input_channels=1, invert_black_bg=True, 
     indexes : list
         A list of indexes for the images to get from the data generator.
     filtered : bool, optional
-        Whether to apply median and mean filtering to the images.
+        Whether to apply median and uniform filtering to the images.
     input_channels : int, optional
         The number of channels in the input images. Supported values are 1 and 3.
     invert_black_bg : bool, optional
