@@ -1,9 +1,11 @@
 # Current project
 dataset/
+test_set/
 tb_logs/
 float_model/
 *.pkl
 train_set.zip
+test_set.zip
 *.png
 *.csv
 *.csv#
