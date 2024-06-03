@@ -1,10 +1,92 @@
 # AAIB Assignment 2022: X-Ray images classifier for PNEUMONIA and TUBERCULOSIS
 
+## Introduction
+Lung pathologies such as tuberculosis and pneumonia significantly impact individuals worldwide. Tuberculosis is caused by *Mycobacterium tuberculosis* and is primarily transmitted through airborne droplets, leading to symptoms like fever, night sweats, and weight loss. Pneumonia, caused by various bacteria and viruses, inflames the alveoli, causing difficulty in breathing and other symptoms like chest pain and fatigue.
+
+This project aims to develop deep learning models to automatically detect these pathologies from medical images.
+
+## Materials and Methods
+
+### Dataset
+The dataset comprises 15,470 X-ray images in PNG and JPEG formats:
+- Normal: 60.47% (9354 images)
+- Pneumonia: 27.47% (4250 images)
+- Tuberculosis: 12.06% (1866 images)
+
+All images were categorized ensuring patient-specific data integrity during the train-test split. The data distribution is illustrated below.
+
+![Dataset Distribution](path/to/your/images/distribution.png)
+
+### Data Exploration
+We performed a visual inspection and identified issues such as blurriness, noise, and contrast inversion in the images. A classification algorithm using Otsu's threshold was implemented to binarize images and identify noisy or corrupted images. The results showed approximately 60% normal contrast, 20% complementary contrast, and 20% noisy/corrupted images.
+
+![Image Conditions](path/to/your/images/conditions.png)
+
+### Preprocessing
+We applied several preprocessing techniques:
+- **Basic Preprocessing**: Conversion to grayscale, resizing, and normalization.
+- **Noise Removal**: Applied median and uniform filters.
+- **Data Augmentation**: Random rotation and flipping.
+- **Denoising Autoencoder (DAE)**: To remove uniform noise.
+- **Principal Component Analysis (PCA)**: For noise reduction.
+
+The median and uniform filtering pipeline was chosen for its efficiency and performance balance.
+
+### Models
+We employed two types of models:
+- **EfficientNetB3**: A deep learning neural network with convolutional layers for feature extraction and dense layers for classification.
+- **Support Vector Machine (SVM) with HOG**: Histogram of Oriented Gradients for feature extraction and SVM for classification.
+
+### Training
+We customized training with various arguments, such as learning rates, loss functions, class weights, and regularization. A total of 180 epochs were used, with early stopping and regularization applied to prevent overfitting.
+
+### Explainable AI (XAI)
+We implemented several XAI methods:
+- **LIME**: Local Interpretable Model-Agnostic Explanations.
+- **Grad-CAM**: Gradient-weighted Class Activation Mapping.
+- **Occlusion Sensitivity**: To identify important regions in the images.
+
+## Results
+
+### Preprocessing Comparison
+The performance of different preprocessing techniques is summarized below.
+
+| Preprocessing  | Train Accuracy (%) | Validation Accuracy (%) | Test Accuracy (%) | Time per Epoch (s) |
+|----------------|---------------------|--------------------------|---------------------|--------------------|
+| Filtering      | 99.99               | 97.22                    | 97.79               | ~160               |
+| DAE            | 99.99               | 96.42                    | 96.57               | ~710               |
+| PCA            | 94.33               | 92.91                    | 92.10               | ~310               |
+
+Data augmentation did not significantly impact performance.
+
+### Model Comparison
+The performance of EfficientNetB3 and SVM is reported based on five-fold cross-validation.
+
+| Model           | Train Accuracy mean (std) (%) | Validation Accuracy mean (std) (%) | Test Accuracy mean (std) (%) |
+|-----------------|-------------------------------|------------------------------------|-----------------------------|
+| EfficientNetB3  | 99.99                         | 97.22                              | 97.79                       |
+| SVM             | 98.67                         | 95.42                              | 95.01                       |
+
+### Explainable AI
+XAI techniques provided insights into model decision-making processes, with heatmaps indicating regions of importance in the X-ray images.
+
+![Results Heatmap](path/to/your/images/heatmap.png)
+
+## Conclusion
+The project successfully implemented deep learning models to classify lung pathologies from X-ray images with high accuracy. EfficientNetB3 combined with effective preprocessing techniques outperformed other models. The application of XAI methods enhanced the interpretability of model predictions, ensuring trust and reliability in the healthcare domain.
+
+
+
+<details>
+<summary>Instructions</summary>
+<!-- The fenced code block below must be separated by
+     blank lines on either side to work correctly -->
+
 ## Setup 
 
 * Open a command prompt and execute:
 ```console
-https://github.com/RaffaeleBerzoini/AAIB_Assignment2022.git
+https://github.com/Davide-Console/AAIB_Assignment2022.git
 cd AAIB_Assignment2022
 ```
 Download the [dataset](https://drive.google.com/drive/folders/1KS4tFoB1SZU6HLhm0pfMPmtNOOrFB1Az) and place the **train_set.zip** file in the project folder
@@ -106,3 +188,5 @@ python XAI_Occlusion.py
   ```console
 python XAI_InvertedOcclusion.py
   ```
+
+</details>
