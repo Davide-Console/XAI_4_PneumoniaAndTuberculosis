@@ -14,13 +14,12 @@ The dataset comprises 15,470 X-ray images in PNG and JPEG formats:
 - Tuberculosis: 12.06% (1866 images)
 
 All images were categorized ensuring patient-specific data integrity during the train-test split. The data distribution is illustrated below.
-
-![Dataset Distribution](path/to/your/images/distribution.png)
+<p align="center"> <img align="center" src="./images/Picture1.png" width="300" /> <p/>
 
 ### Data Exploration
 We performed a visual inspection and identified issues such as blurriness, noise, and contrast inversion in the images. A classification algorithm using Otsu's threshold was implemented to binarize images and identify noisy or corrupted images. The results showed approximately 60% normal contrast, 20% complementary contrast, and 20% noisy/corrupted images.
 
-![Image Conditions](path/to/your/images/conditions.png)
+<p align="center"> <img align="center" src="./images/Picture2.png" width="300" /> <p/>
 
 ### Preprocessing
 We applied several preprocessing techniques:
@@ -31,6 +30,8 @@ We applied several preprocessing techniques:
 - **Principal Component Analysis (PCA)**: For noise reduction.
 
 The median and uniform filtering pipeline was chosen for its efficiency and performance balance.
+
+<p align="center"> <img align="center" src="./images/Picture3.png" width="450" /> <p/>
 
 ### Models
 We employed two types of models:
@@ -70,12 +71,16 @@ The performance of EfficientNetB3 and SVM is reported based on five-fold cross-v
 ### Explainable AI
 XAI techniques provided insights into model decision-making processes, with heatmaps indicating regions of importance in the X-ray images.
 
-![Results Heatmap](path/to/your/images/heatmap.png)
+<p align="center"> <img align="center" src="./images/Picture5.png" width="600" /> <p/>
+<p align="center"> <img align="center" src="./images/Picture6.png" width="600" /> <p/>
 
 ## Conclusion
 The project successfully implemented deep learning models to classify lung pathologies from X-ray images with high accuracy. EfficientNetB3 combined with effective preprocessing techniques outperformed other models. The application of XAI methods enhanced the interpretability of model predictions, ensuring trust and reliability in the healthcare domain.
 
 
+</br>
+</br>
+</br>
 
 <details>
 <summary>Instructions</summary>
@@ -190,3 +195,9 @@ python XAI_InvertedOcclusion.py
   ```
 
 </details>
+
+
+## Authors
+- Raffaele Berzoini
+- Davide Console
+- Noemi Manzo
